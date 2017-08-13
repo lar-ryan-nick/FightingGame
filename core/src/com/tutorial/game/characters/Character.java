@@ -2,12 +2,9 @@ package com.tutorial.game.characters;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
@@ -21,17 +18,14 @@ import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
-import com.badlogic.gdx.utils.ObjectFloatMap;
 import com.badlogic.gdx.utils.Timer;
 import com.tutorial.game.screens.GameScreen;
-
-import java.util.ArrayList;
 
 /**
  * Created by ryanl on 8/6/2017.
  */
 
-public class Character extends Actor {
+public class Character extends Actor implements Disposable {
 
     public static final short CATEGORY_CHARACTER = 0x0001;
     public static final short CATEGORY_ARM = 0x0002;
@@ -43,7 +37,6 @@ public class Character extends Actor {
     private boolean isPossessed;
     private boolean isMovingLeft;
     private boolean isMovingRight;
-    private boolean isFacingLeft;
     private boolean isInAir;
     private int currWalkNum;
     private int currCrouchNum;
@@ -54,6 +47,7 @@ public class Character extends Actor {
     private Timer standingTimer;
     private Timer punchingTimer;
     private Timer flinchTimer;
+    private int health;
 
     public Character(World world) {
         super();
@@ -63,7 +57,6 @@ public class Character extends Actor {
         healthBar.setColor(0, 1, 0, 1);
         isMovingLeft = false;
         isMovingRight = false;
-        isFacingLeft = false;
         isInAir = false;
         isPossessed = false;
         currWalkNum = -1;
@@ -76,7 +69,7 @@ public class Character extends Actor {
             public void run() {
                 updateWalkingAnim();
             }
-        }, 0, .15f);
+        }, 0, .125f);
         walkingTimer.stop();
         crouchingTimer = new Timer();
         crouchingTimer.scheduleTask(new Timer.Task() {
@@ -108,20 +101,20 @@ public class Character extends Actor {
             public void run() {
                 updateFlinchingAnim();
             }
-        }, 0, .15f);
+        }, 0, .25f);
         flinchTimer.stop();
         BodyDef box = new BodyDef();
         box.type = BodyDef.BodyType.DynamicBody;
-        box.position.set(getX() - Gdx.graphics.getWidth() / 2 + getWidth() / 2, getY() - Gdx.graphics.getHeight() / 2 + getHeight() / 2);
+        box.position.set(getX() + getWidth() / 2, getY() + getHeight() / 2);
         box.fixedRotation = true;
         characterBody = world.createBody(box);
         characterBody.setUserData(this);
         setTexture("img/character/character_idle.png");
+        health = 100;
     }
 
-    public void jump()
-    {
-        if (!isInAir) {
+    public void jump() {
+        if (!isInAir && currFlinchNum < 0) {
             setTexture("img/character/character_jump_start.png");
             //characterBody.setLinearVelocity(0, 500000f);
             characterBody.applyForceToCenter(0, 10000f * characterBody.getMass(), true);
@@ -140,6 +133,11 @@ public class Character extends Actor {
     }
 
     public void flinch() {
+        float knockbackForce = 1000000f * characterBody.getMass();
+        if (!characterImage.isFlipX()) {
+            knockbackForce *= - 1;
+        }
+        characterBody.applyForceToCenter(knockbackForce, 0, true);
         currPunchNum = -1;
         punchingTimer.stop();
         currFlinchNum = 1;
@@ -250,7 +248,8 @@ public class Character extends Actor {
     private void updateFlinchingAnim() {
         if (currFlinchNum == 2) {
             if (isInAir) {
-                setTexture("img/character/character_jump_loop.png");
+                //setTexture("img/character/character_jump_loop.png");
+                return;
             } else if (currCrouchNum >= 0) {
                 setTexture("img/character/character_crouch" + (currCrouchNum + 1) + ".png");
             } else {
@@ -260,10 +259,10 @@ public class Character extends Actor {
             flinchTimer.stop();
         } else if (currFlinchNum >= 0) {
             if (isInAir) {
-                //setTexture(new Texture("img/character/character_jumping_jab" + (currFlinchNum + 1) + ".png"));
+                setTexture("img/character/character_jumping_damage" + (currFlinchNum + 1) + ".png");
                 ++currFlinchNum;
             } else if (currCrouchNum >= 0) {
-                setTexture("img/character/character_crouching_jab" + (currFlinchNum + 1) + ".png");
+                setTexture("img/character/character_crouching_damage" + (currFlinchNum + 1) + ".png");
                 ++currFlinchNum;
             } else {
                 setTexture("img/character/character_standing_damage_high" + (currFlinchNum + 1) + ".png");
@@ -277,90 +276,94 @@ public class Character extends Actor {
     private void updateCharacterSize() {
         Texture newTexture = new Texture(characterImagePath);
         float widthDiffernece = 0;
-        if (isFacingLeft) {
+        if (characterImage.isFlipX()) {
             widthDiffernece = getWidth() - newTexture.getWidth() * CHARACTER_SCALE;
         }
         //Gdx.app.log("Width Difference", "" + widthDiffernece);
         setSize(newTexture.getWidth() * CHARACTER_SCALE, newTexture.getHeight() * CHARACTER_SCALE);
-        World world = characterBody.getWorld();
-        Vector2 velocity = characterBody.getLinearVelocity();
-        world.destroyBody(characterBody);
-        BodyDef box = new BodyDef();
-        box.type = BodyDef.BodyType.DynamicBody;
-        // make sure foot placement is constant for different animations
-        if (currFlinchNum >= 0) {
-            if (!isFacingLeft) {
-                box.position.set(getX() - Gdx.graphics.getWidth() / 2 + getWidth() / 2 + widthDiffernece, getY() - Gdx.graphics.getHeight() / 2 + getHeight() / 2);
-            } else {
-                box.position.set(getX() - Gdx.graphics.getWidth() / 2 + getWidth() / 2, getY() - Gdx.graphics.getHeight() / 2 + getHeight() / 2);
-            }
-        } else {
-            if (isFacingLeft) {
-                box.position.set(getX() - Gdx.graphics.getWidth() / 2 + getWidth() / 2 + widthDiffernece, getY() - Gdx.graphics.getHeight() / 2 + getHeight() / 2);
-            } else {
-                box.position.set(getX() - Gdx.graphics.getWidth() / 2 + getWidth() / 2, getY() - Gdx.graphics.getHeight() / 2 + getHeight() / 2);
-            }
-        }
-        // make sure that character didn't fall of the map
-        if (box.position.x < -Gdx.graphics.getWidth() / 2) {
-            box.position.set(0, box.position.y);
-        } else if (getStage() != null) {
-            OrthographicCamera cam = (OrthographicCamera)getStage().getCamera();
-            if (box.position.x > -Gdx.graphics.getWidth() / 2 + cam.viewportWidth * cam.zoom - getWidth()) {
-                box.position.set(-Gdx.graphics.getWidth() / 2 + cam.viewportWidth * cam.zoom - getWidth() - 0, box.position.y);
-            }
-        }
-        box.fixedRotation = true;
-        box.linearVelocity.set(velocity);
-        characterBody = world.createBody(box);
-        characterBody.setUserData(this);
-        PolygonShape rectangle = new PolygonShape();
-        Json json = new Json();
-        int leftIndex = characterImagePath.lastIndexOf("/") + 1;
-        int rightIndex = characterImagePath.lastIndexOf(".");
-        JsonValue fixtureJSON = new JsonReader().parse(Gdx.files.internal("json/" + characterImagePath.substring(leftIndex, rightIndex) + "_verticies.json")).child();
-        int numFixtures = fixtureJSON.asInt();
-        fixtureJSON = fixtureJSON.next();
-        for (int i = 0; i < numFixtures; ++i) {
-            JsonValue verticieJSON = fixtureJSON.get(i).child();
-            Vector2[] verticies = new Vector2[verticieJSON.asInt()];
-            verticieJSON = verticieJSON.next();
-            for (int j = 0; j < verticies.length; ++j) {
-                float xVal = verticieJSON.child().asFloat() * CHARACTER_SCALE;
-                float yVal = verticieJSON.child().next().asFloat() * CHARACTER_SCALE;
-                if (isFacingLeft) {
-                    xVal *= -1;
+        newTexture.dispose();
+        if (!characterBody.getWorld().isLocked()) {
+            World world = characterBody.getWorld();
+            Vector2 velocity = characterBody.getLinearVelocity();
+            world.destroyBody(characterBody);
+            BodyDef box = new BodyDef();
+            box.type = BodyDef.BodyType.DynamicBody;
+            // make sure foot placement is constant for different animations
+            if (currPunchNum < 0 && (currWalkNum >= 0)) {
+                if (!characterImage.isFlipX()) {
+                    box.position.set(getX() + getWidth() / 2 + widthDiffernece, getY() + getHeight() / 2);
+                } else {
+                    box.position.set(getX() + getWidth() / 2, getY() + getHeight() / 2);
                 }
-                Vector2 verticie = new Vector2(xVal, yVal);
-                verticies[j] = verticie;
+            } else {
+                if (characterImage.isFlipX()) {
+                    box.position.set(getX() + getWidth() / 2 + widthDiffernece, getY() + getHeight() / 2);
+                } else {
+                    box.position.set(getX() + getWidth() / 2, getY() + getHeight() / 2);
+                }
+            }
+            // make sure that character didn't fall of the map
+            if (getStage() != null) {
+                OrthographicCamera cam = (OrthographicCamera) getStage().getCamera();
+                if (box.position.x < -cam.viewportWidth * cam.zoom / 2) {
+                    box.position.set(-cam.viewportWidth * cam.zoom / 2, box.position.y);
+                } else if (box.position.x > cam.viewportWidth * cam.zoom / 2 - getWidth()) {
+                    box.position.set(cam.viewportWidth * cam.zoom / 2 - getWidth(), box.position.y);
+                }
+            }
+            box.fixedRotation = true;
+            box.linearVelocity.set(velocity);
+            characterBody = world.createBody(box);
+            characterBody.setUserData(this);
+            PolygonShape rectangle = new PolygonShape();
+            Json json = new Json();
+            int leftIndex = characterImagePath.lastIndexOf("/") + 1;
+            int rightIndex = characterImagePath.lastIndexOf(".");
+            JsonValue fixtureJSON = new JsonReader().parse(Gdx.files.internal("json/" + characterImagePath.substring(leftIndex, rightIndex) + "_verticies.json")).child();
+            int numFixtures = fixtureJSON.asInt();
+            fixtureJSON = fixtureJSON.next();
+            for (int i = 0; i < numFixtures; ++i) {
+                JsonValue verticieJSON = fixtureJSON.get(i).child();
+                Vector2[] verticies = new Vector2[verticieJSON.asInt()];
                 verticieJSON = verticieJSON.next();
+                for (int j = 0; j < verticies.length; ++j) {
+                    float xVal = verticieJSON.child().asFloat() * CHARACTER_SCALE;
+                    float yVal = verticieJSON.child().next().asFloat() * CHARACTER_SCALE;
+                    if (characterImage.isFlipX()) {
+                        xVal *= -1;
+                    }
+                    Vector2 verticie = new Vector2(xVal, yVal);
+                    verticies[j] = verticie;
+                    verticieJSON = verticieJSON.next();
+                }
+                rectangle.set(verticies);
+                FixtureDef boxFixture = new FixtureDef();
+                boxFixture.shape = rectangle;
+                boxFixture.density = 1f;
+                boxFixture.friction = 1f;
+                boxFixture.restitution = 0f;
+                if (verticieJSON != null) {
+                    boxFixture.filter.categoryBits = CATEGORY_ARM;
+                    boxFixture.filter.maskBits = -1;
+                    boxFixture.isSensor = true;
+                } else {
+                    boxFixture.filter.categoryBits = CATEGORY_CHARACTER;
+                    boxFixture.filter.maskBits = CATEGORY_ARM | GameScreen.CATEGORY_SCENERY;
+                }
+                Fixture fixture = characterBody.createFixture(boxFixture);
+                if (verticieJSON != null) {
+                    fixture.setUserData("jab");
+                } else {
+                    fixture.setUserData("");
+                }
             }
-            rectangle.set(verticies);
-            FixtureDef boxFixture = new FixtureDef();
-            boxFixture.shape = rectangle;
-            boxFixture.density = .0001f;
-            boxFixture.friction = 2f;
-            boxFixture.restitution = 0f;
-            if (verticieJSON != null) {
-                boxFixture.filter.categoryBits = CATEGORY_ARM;
-                boxFixture.filter.maskBits = -1;
-                boxFixture.isSensor = true;
-            } else {
-                boxFixture.filter.categoryBits = CATEGORY_CHARACTER;
-                boxFixture.filter.maskBits = CATEGORY_ARM | GameScreen.CATEGORY_SCENERY;
-            }
-            Fixture fixture = characterBody.createFixture(boxFixture);
-            if (verticieJSON != null) {
-                fixture.setUserData("jab");
-            } else {
-                fixture.setUserData("");
-            }
+            rectangle.dispose();
         }
-        rectangle.dispose();
     }
 
     @Override
     public void act(float delta) {
+        float xVal = 0, yVal = 0;
         // If not current player, find and attack them
         if (!isPossessed) {
             World world = characterBody.getWorld();
@@ -372,67 +375,73 @@ public class Character extends Actor {
                     if (player.isPossessed) {
                         if (player.getX() > getX()) {
                             setFlip(false, false);
-                            if (player.getX() - getX() < 12 * CHARACTER_SCALE + getWidth()) {
-                               // jab();
+                            if (player.getX() - getX() < 15 * CHARACTER_SCALE + getWidth()) {
+                                jab();
+                                setIsMovingRight(false);
+                            } else if (player.getX() - getX() < 30 * CHARACTER_SCALE + getWidth()) {
                                 setIsMovingRight(false);
                             } else {
                                 setIsMovingRight(true);
                             }
                         } else {
                             setFlip(true, false);
-                            if (this.getX() - player.getX() < 12 * CHARACTER_SCALE + player.getWidth()) {
-                              //  jab();
+                            if (this.getX() - player.getX() < 15 * CHARACTER_SCALE + player.getWidth()) {
+                                jab();
                                 setIsMovingLeft(false);
+                            } else if (this.getX() - player.getX() < 30 * CHARACTER_SCALE + getWidth()) {
+                                setIsMovingRight(false);
                             } else {
                                 setIsMovingLeft(true);
                             }
+                        }
+                        if (player.getY() > getY() + 20 * CHARACTER_SCALE && body.getLinearVelocity().y > 0) {
+                            // because jump force will be overriden by act before it has a chance to do anything
+                            if (!isInAir) {
+                                yVal = 10000f * characterBody.getMass();
+                            }
+                            jump();
                         }
                         break;
                     }
                 }
             }
         }
-        float xVal = 0, yVal = 0;
-        if (currCrouchNum < 0 && currPunchNum < 0) {
+        if (currCrouchNum < 0 && currPunchNum < 0 && currFlinchNum < 0) {
             if (isMovingLeft) {
-                xVal = -500 * characterBody.getMass();
+                xVal = -5000 * characterBody.getMass();
             } else if (isMovingRight) {
-                xVal = 500 * characterBody.getMass();
+                xVal = 5000 * characterBody.getMass();
+            }
+            if (Math.abs(characterBody.getLinearVelocity().x) > 5) {
+                xVal /= Math.abs(characterBody.getLinearVelocity().x);
+            } else {
+                xVal /= 5;
             }
         }
         // handle jump mechanics
         if (isInAir) {
             xVal /= 10;
-            if (characterBody.getPosition().y < -Gdx.graphics.getHeight() / 2 + getHeight() / 2 + 8 * CHARACTER_SCALE) {
+            if (characterBody.getPosition().y < getHeight() / 2 + 8 * CHARACTER_SCALE) {
                 if (characterBody.getLinearVelocity().y < 1) {
-                    if (characterBody.getPosition().y < -Gdx.graphics.getHeight() / 2 + getHeight() / 2 + .33f * CHARACTER_SCALE) {
+                    if (characterBody.getPosition().y < getHeight() / 2 + .33f * CHARACTER_SCALE) {
                         isInAir = false;
                         setTexture("img/character/character_idle.png");
                     } else {
                         setTexture("img/character/character_jump_end.png");
                     }
-                } else {
-                    //characterBody.applyLinearImpulse(new Vector2(0, 30000000000000000000f), characterBody.getWorldCenter(), true);
                 }
-            } else if (currPunchNum < 0) {
+            } else if (currPunchNum < 0 && currFlinchNum < 0) {
                 setTexture("img/character/character_jump_loop.png");
             }
         }
         characterBody.applyForceToCenter(xVal, yVal, true);
-        super.setPosition(characterBody.getPosition().x + Gdx.graphics.getWidth() / 2 - getWidth() / 2, characterBody.getPosition().y + Gdx.graphics.getHeight() / 2 - getHeight() / 2);
+        super.setPosition(characterBody.getPosition().x - getWidth() / 2, characterBody.getPosition().y - getHeight() / 2);
     }
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
-        characterImage.getTexture().dispose();
-        characterImage.setTexture(new Texture(characterImagePath));
-        if (isFacingLeft) {
-            characterImage.setFlip(true, false);
-        } else {
-            characterImage.setFlip(false, false);
-        }
         batch.draw(characterImage, getX(), getY(), getWidth(), getHeight());
-        //batch.draw(healthBar, getX(), getY() + getHeight(), 15 * CHARACTER_SCALE, 10);
+        batch.draw(healthBar, getX() + getWidth() / 2 - 20 * CHARACTER_SCALE / 2, getY() + getHeight(), 20 * CHARACTER_SCALE * health / 100, 5 * CHARACTER_SCALE);
     }
 
     @Override
@@ -441,15 +450,20 @@ public class Character extends Actor {
         updateCharacterSize();
     }
 
-    public void setTexture(String internalFilePath) {
+    private void setTexture(String internalFilePath) {
         if (!characterImagePath.equals(internalFilePath)) {
             characterImagePath = internalFilePath;
             updateCharacterSize();
+            characterImage.getTexture().dispose();
+            characterImage.setTexture(new Texture(characterImagePath));
         }
     }
 
     public void setFlip(boolean x, boolean y) {
-        isFacingLeft = x;
+        if (characterImage.isFlipX() != x || characterImage.isFlipY() != y) {
+            characterImage.setFlip(x, y);
+            updateCharacterSize();
+        }
     }
 
     public boolean getIsPossessed() {
@@ -463,5 +477,19 @@ public class Character extends Actor {
     @Override
     public String toString() {
         return "Character";
+    }
+
+    @Override
+    public void dispose() {
+        characterImage.getTexture().dispose();
+        healthBar.getTexture().dispose();
+    }
+
+    public boolean isFacingRight() {
+        return !characterImage.isFlipX();
+    }
+
+    public void changeHealth(int amount) {
+        health += amount;
     }
 }

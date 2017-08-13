@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.BodyDef;
@@ -16,6 +17,7 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.tutorial.game.characters.Character;
 import com.tutorial.game.controllers.PlayerController;
 
@@ -29,9 +31,10 @@ public class GameScreen implements Screen {
     private World world;
     private Box2DDebugRenderer renderer;
     private OrthographicCamera camera;
+    private Stage stage;
+    private Image backgroundImage;
     private Character player;
     private Character enemy;
-    private Stage stage;
 
     @Override
     public void show() {
@@ -47,17 +50,17 @@ public class GameScreen implements Screen {
         float effectiveViewportWidth = cam.viewportWidth * cam.zoom;
         float effectiveViewportHeight = cam.viewportHeight * cam.zoom;
         cam.position.y = effectiveViewportHeight / 2;
-        cam.position.x = effectiveViewportWidth / 2;
-        //camera.position.y = effectiveViewportHeight / 2;
-        //camera.position.x = effectiveViewportWidth / 2;
-        //camera.update();
+        cam.position.x = 0;
+        camera.position.y = effectiveViewportHeight / 2;
+        camera.position.x = 0;
+        camera.update();
         BodyDef floor = new BodyDef();
         floor.type = BodyDef.BodyType.StaticBody;
         floor.position.set(0, 0);
         EdgeShape line = new EdgeShape();
-        line.set(-Gdx.graphics.getWidth() / 2, -Gdx.graphics.getHeight() / 2, -Gdx.graphics.getWidth() / 2 + effectiveViewportWidth, -Gdx.graphics.getHeight() / 2);
+        line.set(-effectiveViewportWidth / 2, 0, effectiveViewportWidth / 2, 0);
         FixtureDef floorFixture = new FixtureDef();
-        floorFixture.friction = 2f;
+        floorFixture.friction = 1f;
         floorFixture.shape = line;
         floorFixture.filter.categoryBits = CATEGORY_SCENERY;
         floorFixture.filter.maskBits = -1;
@@ -65,7 +68,7 @@ public class GameScreen implements Screen {
         BodyDef leftWall = new BodyDef();
         leftWall.type = BodyDef.BodyType.StaticBody;
         leftWall.position.set(0, 0);
-        line.set(-Gdx.graphics.getWidth() / 2, -Gdx.graphics.getHeight() / 2, -Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2);
+        line.set(-effectiveViewportWidth / 2, 0, -effectiveViewportWidth / 2, effectiveViewportHeight);
         FixtureDef wallFixture = new FixtureDef();
         wallFixture.friction = 0f;
         wallFixture.shape = line;
@@ -75,20 +78,22 @@ public class GameScreen implements Screen {
         BodyDef rightWall = new BodyDef();
         rightWall.type = BodyDef.BodyType.StaticBody;
         rightWall.position.set(0, 0);
-        line.set(-Gdx.graphics.getWidth() / 2 + effectiveViewportWidth, -Gdx.graphics.getHeight() / 2, -Gdx.graphics.getWidth() / 2 + effectiveViewportWidth, Gdx.graphics.getHeight() / 2);
+        line.set(effectiveViewportWidth / 2, 0, effectiveViewportWidth / 2, effectiveViewportHeight);
         world.createBody(rightWall).createFixture(wallFixture);
         line.dispose();
+        backgroundImage = new Image(new Texture("img/GameBackgroundImage.jpg"));
+        backgroundImage.setBounds(-effectiveViewportWidth / 2, 0, effectiveViewportWidth, effectiveViewportHeight);
+        //stage.addActor(backgroundImage);
         player = new Character(world);
-        player.setPosition(effectiveViewportWidth / 3, 0);
+        player.setPosition(-effectiveViewportWidth / 3, 0);
         stage.addActor(player);
         PlayerController playerController = new PlayerController(player);
         player.addListener(playerController);
         stage.setKeyboardFocus(player);
         enemy = new Character(world);
-        enemy.setPosition(2 * effectiveViewportWidth / 3, 0);
+        enemy.setPosition(effectiveViewportWidth / 3, 0);
         //enemy.setIsCrouching(true);
         stage.addActor(enemy);
-        //enemy.setIsCrouching(true);
         world.setContactListener(new ContactListener() {
             @Override
             public void beginContact(Contact contact) {
@@ -98,24 +103,26 @@ public class GameScreen implements Screen {
                         Character attacker = (Character) contact.getFixtureA().getBody().getUserData();
                         Character defender = (Character) contact.getFixtureB().getBody().getUserData();
                         Gdx.app.log("Collision", "There was a punch!");
-                        if (attacker.getX() > defender.getX()) {
-                            defender.setFlip(false, false);
-                        } else {
+                        if (attacker.isFacingRight()) {
                             defender.setFlip(true, false);
+                        } else {
+                            defender.setFlip(false, false);
                         }
                         defender.flinch();
+                        defender.changeHealth(-2);
                     } else if (!contact.getFixtureB().getUserData().toString().equals("")) {
                         Character attacker = (Character) contact.getFixtureB().getBody().getUserData();
                         Character defender = (Character) contact.getFixtureA().getBody().getUserData();
                         Gdx.app.log("Collision", "There was a punch!");
                         //check if null since there was an error
                         if (attacker != null && defender != null) {
-                            if (attacker.getX() > defender.getX()) {
-                                defender.setFlip(false, false);
-                            } else {
+                            if (attacker.isFacingRight()) {
                                 defender.setFlip(true, false);
+                            } else {
+                                defender.setFlip(false, false);
                             }
                             defender.flinch();
+                            defender.changeHealth(-2);
                         }
                     }
                 }
@@ -165,12 +172,14 @@ public class GameScreen implements Screen {
 
     @Override
     public void hide() {
-        dispose();
+        //dispose();
     }
 
     @Override
     public void dispose() {
         world.dispose();
-        //renderer.dispose();
+        player.dispose();
+        enemy.dispose();
+        renderer.dispose();
     }
 }
