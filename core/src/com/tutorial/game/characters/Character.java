@@ -34,10 +34,12 @@ public class Character extends Actor implements Disposable {
     private Sprite characterImage;
     private Sprite healthBar;
     private Body characterBody;
+    private int health;
     private boolean isPossessed;
     private boolean isMovingLeft;
     private boolean isMovingRight;
     private boolean isInAir;
+    private boolean isDead;
     private int currWalkNum;
     private int currCrouchNum;
     private int currPunchNum;
@@ -47,7 +49,7 @@ public class Character extends Actor implements Disposable {
     private Timer standingTimer;
     private Timer punchingTimer;
     private Timer flinchTimer;
-    private int health;
+    private boolean needsUpdate;
 
     public Character(World world) {
         super();
@@ -59,6 +61,8 @@ public class Character extends Actor implements Disposable {
         isMovingRight = false;
         isInAir = false;
         isPossessed = false;
+        isDead = false;
+        needsUpdate = false;
         currWalkNum = -1;
         currCrouchNum = -1;
         currPunchNum = -1;
@@ -114,7 +118,7 @@ public class Character extends Actor implements Disposable {
     }
 
     public void jump() {
-        if (!isInAir && currFlinchNum < 0) {
+        if (!isDead && !isInAir && currFlinchNum < 0) {
             setTexture("img/character/character_jump_start.png");
             //characterBody.setLinearVelocity(0, 500000f);
             characterBody.applyForceToCenter(0, 10000f * characterBody.getMass(), true);
@@ -126,7 +130,7 @@ public class Character extends Actor implements Disposable {
     }
 
     public void jab() {
-        if (currPunchNum < 0 && currFlinchNum < 0) {
+        if (!isDead && currPunchNum < 0 && currFlinchNum < 0) {
             currPunchNum = 0;
             punchingTimer.start();
         }
@@ -138,138 +142,156 @@ public class Character extends Actor implements Disposable {
             knockbackForce *= - 1;
         }
         characterBody.applyForceToCenter(knockbackForce, 0, true);
-        currPunchNum = -1;
-        punchingTimer.stop();
-        currFlinchNum = 1;
-        flinchTimer.start();
+        if (!isDead) {
+            currPunchNum = -1;
+            punchingTimer.stop();
+            currFlinchNum = 1;
+            flinchTimer.start();
+        }
     }
 
     public void setIsMovingLeft(boolean val) {
-        if (val) {
-            isMovingRight = false;
-            setFlip(true, false);
-            if (currWalkNum < 0) {
-                currWalkNum = 0;
-                walkingTimer.start();
+        if (!isDead) {
+            if (val) {
+                isMovingRight = false;
+                setFlip(true, false);
+                if (currWalkNum < 0) {
+                    currWalkNum = 0;
+                    walkingTimer.start();
+                }
             }
+            isMovingLeft = val;
         }
-        isMovingLeft = val;
     }
 
     public void setIsMovingRight(boolean val) {
-        if (val) {
-            isMovingLeft = false;
-            setFlip(false, false);
-            if (currWalkNum < 0) {
-                currWalkNum = 0;
-                walkingTimer.start();
+        if (!isDead) {
+            if (val) {
+                isMovingLeft = false;
+                setFlip(false, false);
+                if (currWalkNum < 0) {
+                    currWalkNum = 0;
+                    walkingTimer.start();
+                }
             }
+            isMovingRight = val;
         }
-        isMovingRight = val;
     }
 
     public void setIsCrouching(boolean val)
     {
-        if (!isInAir && currPunchNum < 0 && val) {
-            currCrouchNum = 0;
-            standingTimer.stop();
-            crouchingTimer.start();
-        } else {
-            crouchingTimer.stop();
-            standingTimer.start();
+        if (!isDead) {
+            if (!isInAir && currPunchNum < 0 && val) {
+                currCrouchNum = 0;
+                standingTimer.stop();
+                crouchingTimer.start();
+            } else {
+                crouchingTimer.stop();
+                standingTimer.start();
+            }
         }
     }
 
     private void updateWalkingAnim() {
-        if (!isInAir && currCrouchNum < 0 && currPunchNum < 0 && currFlinchNum < 0) {
-            if (isMovingLeft || isMovingRight) {
-                setFlip(isMovingLeft, false);
-                setTexture("img/character/character_walk" + (currWalkNum + 1) + ".png");
-                currWalkNum = (currWalkNum + 1) % 6;
-            } else {
-                setTexture("img/character/character_idle.png");
-                currWalkNum = -1;
-                walkingTimer.stop();
+        if (!isDead) {
+            if (!isInAir && currCrouchNum < 0 && currPunchNum < 0 && currFlinchNum < 0) {
+                if (isMovingLeft || isMovingRight) {
+                    setFlip(isMovingLeft, false);
+                    setTexture("img/character/character_walk" + (currWalkNum + 1) + ".png");
+                    currWalkNum = (currWalkNum + 1) % 6;
+                } else {
+                    setTexture("img/character/character_idle.png");
+                    currWalkNum = -1;
+                    walkingTimer.stop();
+                }
             }
         }
     }
 
     private void updateCrouchingAnim() {
-        if (!isInAir && currCrouchNum >= 0 && currPunchNum < 0) {
-            setTexture("img/character/character_crouch" + (currCrouchNum + 1) + ".png");
-            if (currCrouchNum < 2) {
-                ++currCrouchNum;
-            } else {
+        if (!isDead) {
+            if (!isInAir && currCrouchNum >= 0 && currPunchNum < 0) {
+                setTexture("img/character/character_crouch" + (currCrouchNum + 1) + ".png");
+                if (currCrouchNum < 2) {
+                    ++currCrouchNum;
+                } else {
+                    crouchingTimer.stop();
+                }
+            } else if (!isInAir && currPunchNum < 0) {
+                currCrouchNum = -1;
                 crouchingTimer.stop();
             }
-        } else if (!isInAir && currPunchNum < 0){
-            currCrouchNum = -1;
-            crouchingTimer.stop();
         }
     }
 
     private void updateStandingAnim() {
-        if (!isInAir && currCrouchNum >= 0 && currPunchNum < 0) {
-            setTexture("img/character/character_crouch" + (currCrouchNum + 1) + ".png");
-            --currCrouchNum;
-        } else if (currPunchNum < 0  && !isInAir) {
-            setTexture("img/character/character_idle.png");
-            standingTimer.stop();
+        if (!isDead) {
+            if (!isInAir && currCrouchNum >= 0 && currPunchNum < 0) {
+                setTexture("img/character/character_crouch" + (currCrouchNum + 1) + ".png");
+                --currCrouchNum;
+            } else if (currPunchNum < 0 && !isInAir) {
+                setTexture("img/character/character_idle.png");
+                standingTimer.stop();
+            }
         }
     }
 
     private void updatePunchingAnim() {
-        if (currPunchNum == 2) {
-            if (isInAir) {
-                setTexture("img/character/character_jump_loop.png");
-            } else if (currCrouchNum >= 0) {
-                setTexture("img/character/character_crouch" + (currCrouchNum + 1) + ".png");
+        if (!isDead) {
+            if (currPunchNum == 2) {
+                if (isInAir) {
+                    setTexture("img/character/character_jump_loop.png");
+                } else if (currCrouchNum >= 0) {
+                    setTexture("img/character/character_crouch" + (currCrouchNum + 1) + ".png");
+                } else {
+                    setTexture("img/character/character_idle.png");
+                }
+                currPunchNum = -1;
+                punchingTimer.stop();
+            } else if (currPunchNum >= 0) {
+                if (isInAir) {
+                    setTexture("img/character/character_jumping_jab" + (currPunchNum + 1) + ".png");
+                    ++currPunchNum;
+                } else if (currCrouchNum >= 0) {
+                    setTexture("img/character/character_crouching_jab" + (currPunchNum + 1) + ".png");
+                    ++currPunchNum;
+                } else {
+                    setTexture("img/character/character_standing_jab" + (currPunchNum + 1) + ".png");
+                    ++currPunchNum;
+                }
             } else {
-                setTexture("img/character/character_idle.png");
+                punchingTimer.stop();
             }
-            currPunchNum = -1;
-            punchingTimer.stop();
-        } else if (currPunchNum >= 0) {
-            if (isInAir) {
-                setTexture("img/character/character_jumping_jab" + (currPunchNum + 1) + ".png");
-                ++currPunchNum;
-            } else if (currCrouchNum >= 0) {
-                setTexture("img/character/character_crouching_jab" + (currPunchNum + 1) + ".png");
-                ++currPunchNum;
-            } else {
-                setTexture("img/character/character_standing_jab" + (currPunchNum + 1) + ".png");
-                ++currPunchNum;
-            }
-        } else {
-            punchingTimer.stop();
         }
     }
 
     private void updateFlinchingAnim() {
-        if (currFlinchNum == 2) {
-            if (isInAir) {
-                //setTexture("img/character/character_jump_loop.png");
-                return;
-            } else if (currCrouchNum >= 0) {
-                setTexture("img/character/character_crouch" + (currCrouchNum + 1) + ".png");
+        if (!isDead) {
+            if (currFlinchNum == 2) {
+                if (isInAir) {
+                    //setTexture("img/character/character_jump_loop.png");
+                    return;
+                } else if (currCrouchNum >= 0) {
+                    setTexture("img/character/character_crouch" + (currCrouchNum + 1) + ".png");
+                } else {
+                    setTexture("img/character/character_idle.png");
+                }
+                currFlinchNum = -1;
+                flinchTimer.stop();
+            } else if (currFlinchNum >= 0) {
+                if (isInAir) {
+                    setTexture("img/character/character_jumping_damage" + (currFlinchNum + 1) + ".png");
+                    ++currFlinchNum;
+                } else if (currCrouchNum >= 0) {
+                    setTexture("img/character/character_crouching_damage" + (currFlinchNum + 1) + ".png");
+                    ++currFlinchNum;
+                } else {
+                    setTexture("img/character/character_standing_damage_high" + (currFlinchNum + 1) + ".png");
+                    ++currFlinchNum;
+                }
             } else {
-                setTexture("img/character/character_idle.png");
+                flinchTimer.stop();
             }
-            currFlinchNum = -1;
-            flinchTimer.stop();
-        } else if (currFlinchNum >= 0) {
-            if (isInAir) {
-                setTexture("img/character/character_jumping_damage" + (currFlinchNum + 1) + ".png");
-                ++currFlinchNum;
-            } else if (currCrouchNum >= 0) {
-                setTexture("img/character/character_crouching_damage" + (currFlinchNum + 1) + ".png");
-                ++currFlinchNum;
-            } else {
-                setTexture("img/character/character_standing_damage_high" + (currFlinchNum + 1) + ".png");
-                ++currFlinchNum;
-            }
-        } else {
-            flinchTimer.stop();
         }
     }
 
@@ -283,6 +305,7 @@ public class Character extends Actor implements Disposable {
         setSize(newTexture.getWidth() * CHARACTER_SCALE, newTexture.getHeight() * CHARACTER_SCALE);
         newTexture.dispose();
         if (!characterBody.getWorld().isLocked()) {
+            needsUpdate = false;
             World world = characterBody.getWorld();
             Vector2 velocity = characterBody.getLinearVelocity();
             world.destroyBody(characterBody);
@@ -358,83 +381,91 @@ public class Character extends Actor implements Disposable {
                 }
             }
             rectangle.dispose();
+        } else {
+            needsUpdate = true;
         }
     }
 
     @Override
     public void act(float delta) {
-        float xVal = 0, yVal = 0;
-        // If not current player, find and attack them
-        if (!isPossessed) {
-            World world = characterBody.getWorld();
-            Array<Body> bodies = new Array<Body>(world.getBodyCount());
-            world.getBodies(bodies);
-            for (Body body : bodies) {
-                if (body.getUserData() instanceof Character) {
-                    Character player = ((Character)body.getUserData());
-                    if (player.isPossessed) {
-                        if (player.getX() > getX()) {
-                            setFlip(false, false);
-                            if (player.getX() - getX() < 15 * CHARACTER_SCALE + getWidth()) {
-                                jab();
-                                setIsMovingRight(false);
-                            } else if (player.getX() - getX() < 30 * CHARACTER_SCALE + getWidth()) {
-                                setIsMovingRight(false);
+        if (!isDead) {
+            float xVal = 0, yVal = 0;
+            // If not current player, find and attack them
+            if (!isPossessed) {
+                World world = characterBody.getWorld();
+                Array<Body> bodies = new Array<Body>(world.getBodyCount());
+                world.getBodies(bodies);
+                for (Body body : bodies) {
+                    if (body.getUserData() instanceof Character) {
+                        Character player = ((Character) body.getUserData());
+                        if (player.isPossessed) {
+                            if (!player.isDead) {
+                                if (player.getX() > getX()) {
+                                    setFlip(false, false);
+                                    if (player.getX() - getX() < 16 * CHARACTER_SCALE + getWidth() && Math.abs(player.getY() - getY()) <= getHeight()) {
+                                        jab();
+                                        setIsMovingRight(false);
+                                    } else {
+                                        setIsMovingRight(true);
+                                    }
+                                } else {
+                                    setFlip(true, false);
+                                    if (this.getX() - player.getX() < 16 * CHARACTER_SCALE + player.getWidth() && Math.abs(player.getY() - getY()) <= getHeight()) {
+                                        jab();
+                                        setIsMovingLeft(false);
+                                    } else {
+                                        setIsMovingLeft(true);
+                                    }
+                                }
+                                if (player.getY() > getY() + getHeight() && body.getLinearVelocity().y > 0) {
+                                    // because jump force will be overriden by act before it has a chance to do anything
+                                    if (!isInAir) {
+                                        yVal = 10000f * characterBody.getMass();
+                                    }
+                                    jump();
+                                }
                             } else {
-                                setIsMovingRight(true);
-                            }
-                        } else {
-                            setFlip(true, false);
-                            if (this.getX() - player.getX() < 15 * CHARACTER_SCALE + player.getWidth()) {
-                                jab();
+                                setIsMovingRight(false);
                                 setIsMovingLeft(false);
-                            } else if (this.getX() - player.getX() < 30 * CHARACTER_SCALE + getWidth()) {
-                                setIsMovingRight(false);
-                            } else {
-                                setIsMovingLeft(true);
                             }
+                            break;
                         }
-                        if (player.getY() > getY() + 20 * CHARACTER_SCALE && body.getLinearVelocity().y > 0) {
-                            // because jump force will be overriden by act before it has a chance to do anything
-                            if (!isInAir) {
-                                yVal = 10000f * characterBody.getMass();
-                            }
-                            jump();
-                        }
-                        break;
                     }
                 }
             }
-        }
-        if (currCrouchNum < 0 && currPunchNum < 0 && currFlinchNum < 0) {
-            if (isMovingLeft) {
-                xVal = -5000 * characterBody.getMass();
-            } else if (isMovingRight) {
-                xVal = 5000 * characterBody.getMass();
-            }
-            if (Math.abs(characterBody.getLinearVelocity().x) > 5) {
-                xVal /= Math.abs(characterBody.getLinearVelocity().x);
-            } else {
-                xVal /= 5;
-            }
-        }
-        // handle jump mechanics
-        if (isInAir) {
-            xVal /= 10;
-            if (characterBody.getPosition().y < getHeight() / 2 + 8 * CHARACTER_SCALE) {
-                if (characterBody.getLinearVelocity().y < 1) {
-                    if (characterBody.getPosition().y < getHeight() / 2 + .33f * CHARACTER_SCALE) {
-                        isInAir = false;
-                        setTexture("img/character/character_idle.png");
-                    } else {
-                        setTexture("img/character/character_jump_end.png");
-                    }
+            if (currCrouchNum < 0 && currPunchNum < 0 && currFlinchNum < 0) {
+                if (isMovingLeft) {
+                    xVal = -5000 * characterBody.getMass();
+                } else if (isMovingRight) {
+                    xVal = 5000 * characterBody.getMass();
                 }
-            } else if (currPunchNum < 0 && currFlinchNum < 0) {
-                setTexture("img/character/character_jump_loop.png");
+                if (Math.abs(characterBody.getLinearVelocity().x) > 5) {
+                    xVal /= Math.abs(characterBody.getLinearVelocity().x);
+                } else {
+                    xVal /= 5;
+                }
             }
+            // handle jump mechanics
+            if (isInAir) {
+                xVal /= 10;
+                if (characterBody.getPosition().y < getHeight() / 2 + 8 * CHARACTER_SCALE) {
+                    if (characterBody.getLinearVelocity().y < 1) {
+                        if (characterBody.getPosition().y < getHeight() / 2 + .33f * CHARACTER_SCALE) {
+                            isInAir = false;
+                            setTexture("img/character/character_idle.png");
+                        } else {
+                            setTexture("img/character/character_jump_end.png");
+                        }
+                    }
+                } else if (currPunchNum < 0 && currFlinchNum < 0) {
+                    setTexture("img/character/character_jump_loop.png");
+                }
+            }
+            characterBody.applyForceToCenter(xVal, yVal, true);
         }
-        characterBody.applyForceToCenter(xVal, yVal, true);
+        if (needsUpdate) {
+            updateCharacterSize();
+        }
         super.setPosition(characterBody.getPosition().x - getWidth() / 2, characterBody.getPosition().y - getHeight() / 2);
     }
 
@@ -491,5 +522,15 @@ public class Character extends Actor implements Disposable {
 
     public void changeHealth(int amount) {
         health += amount;
+        if (health <= 0) {
+            health = 0;
+            isDead = true;
+            walkingTimer.stop();
+            crouchingTimer.stop();
+            standingTimer.stop();
+            punchingTimer.stop();
+            flinchTimer.stop();
+            setTexture("img/character/character_ko.png");
+        }
     }
 }

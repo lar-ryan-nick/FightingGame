@@ -18,6 +18,7 @@ import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.utils.Array;
 import com.tutorial.game.characters.Character;
 import com.tutorial.game.controllers.PlayerController;
 
@@ -28,13 +29,20 @@ import com.tutorial.game.controllers.PlayerController;
 public class GameScreen implements Screen {
 
     public static final short CATEGORY_SCENERY = 0x0004;
+    private int numEnemies;
     private World world;
     private Box2DDebugRenderer renderer;
     private OrthographicCamera camera;
     private Stage stage;
     private Image backgroundImage;
+    private Image floorImage;
     private Character player;
-    private Character enemy;
+    private Array<Character> enemies;
+
+    public GameScreen(int enemies) {
+        super();
+        numEnemies = enemies;
+    }
 
     @Override
     public void show() {
@@ -49,9 +57,9 @@ public class GameScreen implements Screen {
         camera.zoom -= .9f;
         float effectiveViewportWidth = cam.viewportWidth * cam.zoom;
         float effectiveViewportHeight = cam.viewportHeight * cam.zoom;
-        cam.position.y = effectiveViewportHeight / 2;
+        cam.position.y = effectiveViewportHeight / 3;
         cam.position.x = 0;
-        camera.position.y = effectiveViewportHeight / 2;
+        camera.position.y = effectiveViewportHeight / 3;
         camera.position.x = 0;
         camera.update();
         BodyDef floor = new BodyDef();
@@ -82,18 +90,24 @@ public class GameScreen implements Screen {
         world.createBody(rightWall).createFixture(wallFixture);
         line.dispose();
         backgroundImage = new Image(new Texture("img/GameBackgroundImage.jpg"));
-        backgroundImage.setBounds(-effectiveViewportWidth / 2, 0, effectiveViewportWidth, effectiveViewportHeight);
-        //stage.addActor(backgroundImage);
+        backgroundImage.setBounds(-effectiveViewportWidth / 2, 0, effectiveViewportWidth, 5 * effectiveViewportHeight / 6);
+        stage.addActor(backgroundImage);
+        floorImage = new Image(new Texture("img/GameFloorImage.jpg"));
+        floorImage.setBounds(-effectiveViewportWidth / 2, -effectiveViewportHeight / 6, effectiveViewportWidth, effectiveViewportHeight / 6);
+        stage.addActor(floorImage);
         player = new Character(world);
-        player.setPosition(-effectiveViewportWidth / 3, 0);
+        player.setPosition(-player.getWidth() / 2, 0);
         stage.addActor(player);
         PlayerController playerController = new PlayerController(player);
         player.addListener(playerController);
         stage.setKeyboardFocus(player);
-        enemy = new Character(world);
-        enemy.setPosition(effectiveViewportWidth / 3, 0);
-        //enemy.setIsCrouching(true);
-        stage.addActor(enemy);
+        enemies = new Array<Character>(numEnemies);
+        for (int i = 0; i < numEnemies; i++) {
+            Character enemy = new Character(world);
+            enemy.setPosition((float)(Math.pow(-1, i) * (i + 1) * effectiveViewportWidth / numEnemies / 2), 0);
+            stage.addActor(enemy);
+            enemies.add(enemy);
+        }
         world.setContactListener(new ContactListener() {
             @Override
             public void beginContact(Contact contact) {
@@ -179,7 +193,9 @@ public class GameScreen implements Screen {
     public void dispose() {
         world.dispose();
         player.dispose();
-        enemy.dispose();
+        for (Character enemy : enemies) {
+            enemy.dispose();
+        }
         renderer.dispose();
     }
 }
