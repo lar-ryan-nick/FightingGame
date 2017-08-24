@@ -64,11 +64,11 @@ com_crashlytics_export_strings.xml
 /ios-moe/nbproject/private/
 
 /build/
-##/android/build/
-##/core/build/
-##/desktop/build/
-##/html/build/
-##/ios/build/
+/android/build/
+/core/build/
+/desktop/build/
+/html/build/
+/ios/build/
 /ios-moe/build/
 
 /nbbuild/
@@ -104,11 +104,11 @@ nb-configuration.xml
 .gradle/
 gradle-app.setting
 /build/
-/android/build/
-/core/build/
-/desktop/build/
-/html/build/
-/ios/build/
+#/android/build/
+#/core/build/
+#/desktop/build/
+#/html/build/
+#/ios/build/
 /ios-moe/build/
 
 ## OS Specific
