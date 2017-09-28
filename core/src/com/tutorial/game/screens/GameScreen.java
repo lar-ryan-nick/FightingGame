@@ -39,6 +39,11 @@ public class GameScreen implements Screen {
     private Character player;
     private Array<Character> enemies;
 
+    public GameScreen() {
+        super();
+        numEnemies = 1;
+    }
+
     public GameScreen(int enemies) {
         super();
         numEnemies = enemies;
@@ -56,17 +61,19 @@ public class GameScreen implements Screen {
         cam.zoom -= .9f;
         camera.zoom -= .9f;
         float effectiveViewportWidth = cam.viewportWidth * cam.zoom;
+        Gdx.app.log("width", "" + effectiveViewportWidth);
         float effectiveViewportHeight = cam.viewportHeight * cam.zoom;
-        cam.position.y = effectiveViewportHeight / 3;
-        cam.position.x = 0;
-        camera.position.y = effectiveViewportHeight / 3;
-        camera.position.x = 0;
+        Gdx.app.log("height", "" + effectiveViewportHeight);
+        cam.position.y = effectiveViewportHeight / 2;
+        cam.position.x = effectiveViewportWidth / 2;
+        camera.position.y = effectiveViewportHeight / 2;
+        camera.position.x = effectiveViewportWidth / 2;
         camera.update();
         BodyDef floor = new BodyDef();
         floor.type = BodyDef.BodyType.StaticBody;
         floor.position.set(0, 0);
         EdgeShape line = new EdgeShape();
-        line.set(-effectiveViewportWidth / 2, 0, effectiveViewportWidth / 2, 0);
+        line.set(0, 0, effectiveViewportWidth,  0);
         FixtureDef floorFixture = new FixtureDef();
         floorFixture.friction = 1f;
         floorFixture.shape = line;
@@ -76,7 +83,7 @@ public class GameScreen implements Screen {
         BodyDef leftWall = new BodyDef();
         leftWall.type = BodyDef.BodyType.StaticBody;
         leftWall.position.set(0, 0);
-        line.set(-effectiveViewportWidth / 2, 0, -effectiveViewportWidth / 2, effectiveViewportHeight);
+        line.set(0, 0, 0, effectiveViewportHeight);
         FixtureDef wallFixture = new FixtureDef();
         wallFixture.friction = 0f;
         wallFixture.shape = line;
@@ -86,17 +93,19 @@ public class GameScreen implements Screen {
         BodyDef rightWall = new BodyDef();
         rightWall.type = BodyDef.BodyType.StaticBody;
         rightWall.position.set(0, 0);
-        line.set(effectiveViewportWidth / 2, 0, effectiveViewportWidth / 2, effectiveViewportHeight);
+        line.set(effectiveViewportWidth, 0, effectiveViewportWidth, effectiveViewportHeight);
         world.createBody(rightWall).createFixture(wallFixture);
         line.dispose();
         backgroundImage = new Image(new Texture("img/GameBackgroundImage.jpg"));
-        backgroundImage.setBounds(-effectiveViewportWidth / 2, 0, effectiveViewportWidth, 5 * effectiveViewportHeight / 6);
-        stage.addActor(backgroundImage);
+        backgroundImage.setBounds(0, 0, effectiveViewportWidth, effectiveViewportHeight);
+        //stage.addActor(backgroundImage);
+        /*
         floorImage = new Image(new Texture("img/GameFloorImage.jpg"));
-        floorImage.setBounds(-effectiveViewportWidth / 2, -effectiveViewportHeight / 6, effectiveViewportWidth, effectiveViewportHeight / 6);
+        floorImage.setBounds(0, 0, effectiveViewportWidth, 0);
         stage.addActor(floorImage);
+        */
         player = new Character(world);
-        player.setPosition(-player.getWidth() / 2, 0);
+        player.setPosition(player.getWidth(), 0);
         stage.addActor(player);
         PlayerController playerController = new PlayerController(player);
         player.addListener(playerController);
@@ -104,7 +113,7 @@ public class GameScreen implements Screen {
         enemies = new Array<Character>(numEnemies);
         for (int i = 0; i < numEnemies; i++) {
             Character enemy = new Character(world);
-            enemy.setPosition((float)(Math.pow(-1, i) * (i + 1) * effectiveViewportWidth / numEnemies / 2), 0);
+            enemy.setPosition((float)((i + 1) * effectiveViewportWidth / (numEnemies + 1)), 0);
             stage.addActor(enemy);
             enemies.add(enemy);
         }

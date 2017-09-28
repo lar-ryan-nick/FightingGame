@@ -13,6 +13,7 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.Json;
@@ -29,7 +30,7 @@ public class Character extends Actor implements Disposable {
 
     public static final short CATEGORY_CHARACTER = 0x0001;
     public static final short CATEGORY_ARM = 0x0002;
-    private final float CHARACTER_SCALE = .2f;
+    private float characterScale;
     private String characterImagePath;
     private Sprite characterImage;
     private Sprite healthBar;
@@ -53,6 +54,8 @@ public class Character extends Actor implements Disposable {
 
     public Character(World world) {
         super();
+        Gdx.app.log("Character", "hi");
+        characterScale = 3f / 17;
         characterImagePath = "";
         characterImage = new Sprite(new Texture("img/character/character_idle.png"));
         healthBar = new Sprite(new Texture("img/square.png"));
@@ -115,6 +118,12 @@ public class Character extends Actor implements Disposable {
         characterBody.setUserData(this);
         setTexture("img/character/character_idle.png");
         health = 100;
+    }
+
+    @Override
+    protected void setStage(Stage stage) {
+        super.setStage(stage);
+        updateCharacterSize();
     }
 
     public void jump() {
@@ -296,13 +305,17 @@ public class Character extends Actor implements Disposable {
     }
 
     private void updateCharacterSize() {
+        if (getStage() != null) {
+            OrthographicCamera cam = (OrthographicCamera) getStage().getCamera();
+            characterScale = cam.viewportWidth * cam.zoom / 100 * 3 / 17;
+        }
         Texture newTexture = new Texture(characterImagePath);
         float widthDiffernece = 0;
         if (characterImage.isFlipX()) {
-            widthDiffernece = getWidth() - newTexture.getWidth() * CHARACTER_SCALE;
+            widthDiffernece = getWidth() - newTexture.getWidth() * characterScale;
         }
         //Gdx.app.log("Width Difference", "" + widthDiffernece);
-        setSize(newTexture.getWidth() * CHARACTER_SCALE, newTexture.getHeight() * CHARACTER_SCALE);
+        setSize(newTexture.getWidth() * characterScale, newTexture.getHeight() * characterScale);
         newTexture.dispose();
         if (!characterBody.getWorld().isLocked()) {
             needsUpdate = false;
@@ -326,13 +339,11 @@ public class Character extends Actor implements Disposable {
                 }
             }
             // make sure that character didn't fall of the map
-            if (getStage() != null) {
-                OrthographicCamera cam = (OrthographicCamera) getStage().getCamera();
-                if (box.position.x < -cam.viewportWidth * cam.zoom / 2) {
-                    box.position.set(-cam.viewportWidth * cam.zoom / 2, box.position.y);
-                } else if (box.position.x > cam.viewportWidth * cam.zoom / 2 - getWidth()) {
-                    box.position.set(cam.viewportWidth * cam.zoom / 2 - getWidth(), box.position.y);
-                }
+            float worldWidth = characterScale * 17 / 3 * 100;
+            if (box.position.x < 0) {
+                box.position.set(0, box.position.y);
+            } else if (box.position.x > worldWidth - getWidth()) {
+                box.position.set(worldWidth - getWidth(), box.position.y);
             }
             box.fixedRotation = true;
             box.linearVelocity.set(velocity);
@@ -350,8 +361,8 @@ public class Character extends Actor implements Disposable {
                 Vector2[] verticies = new Vector2[verticieJSON.asInt()];
                 verticieJSON = verticieJSON.next();
                 for (int j = 0; j < verticies.length; ++j) {
-                    float xVal = verticieJSON.child().asFloat() * CHARACTER_SCALE;
-                    float yVal = verticieJSON.child().next().asFloat() * CHARACTER_SCALE;
+                    float xVal = verticieJSON.child().asFloat() * characterScale;
+                    float yVal = verticieJSON.child().next().asFloat() * characterScale;
                     if (characterImage.isFlipX()) {
                         xVal *= -1;
                     }
@@ -402,7 +413,7 @@ public class Character extends Actor implements Disposable {
                             if (!player.isDead) {
                                 if (player.getX() > getX()) {
                                     setFlip(false, false);
-                                    if (player.getX() - getX() < 16 * CHARACTER_SCALE + getWidth() && Math.abs(player.getY() - getY()) <= getHeight()) {
+                                    if (player.getX() - getX() < 16 * characterScale + getWidth() && Math.abs(player.getY() - getY()) <= getHeight()) {
                                         jab();
                                         setIsMovingRight(false);
                                     } else {
@@ -410,7 +421,7 @@ public class Character extends Actor implements Disposable {
                                     }
                                 } else {
                                     setFlip(true, false);
-                                    if (this.getX() - player.getX() < 16 * CHARACTER_SCALE + player.getWidth() && Math.abs(player.getY() - getY()) <= getHeight()) {
+                                    if (this.getX() - player.getX() < 16 * characterScale + player.getWidth() && Math.abs(player.getY() - getY()) <= getHeight()) {
                                         jab();
                                         setIsMovingLeft(false);
                                     } else {
@@ -448,9 +459,9 @@ public class Character extends Actor implements Disposable {
             // handle jump mechanics
             if (isInAir) {
                 xVal /= 10;
-                if (characterBody.getPosition().y < getHeight() / 2 + 8 * CHARACTER_SCALE) {
+                if (characterBody.getPosition().y < getHeight() / 2 + 8 * characterScale) {
                     if (characterBody.getLinearVelocity().y < 1) {
-                        if (characterBody.getPosition().y < getHeight() / 2 + .33f * CHARACTER_SCALE) {
+                        if (characterBody.getPosition().y < getHeight() / 2 + .33f * characterScale) {
                             isInAir = false;
                             setTexture("img/character/character_idle.png");
                         } else {
@@ -472,7 +483,7 @@ public class Character extends Actor implements Disposable {
     @Override
     public void draw(Batch batch, float parentAlpha) {
         batch.draw(characterImage, getX(), getY(), getWidth(), getHeight());
-        batch.draw(healthBar, getX() + getWidth() / 2 - 20 * CHARACTER_SCALE / 2, getY() + getHeight(), 20 * CHARACTER_SCALE * health / 100, 5 * CHARACTER_SCALE);
+        batch.draw(healthBar, getX() + getWidth() / 2 - 20 * characterScale / 2, getY() + getHeight(), 20 * characterScale * health / 100, 5 * characterScale);
     }
 
     @Override

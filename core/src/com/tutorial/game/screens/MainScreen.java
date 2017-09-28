@@ -55,7 +55,7 @@ public class MainScreen implements Screen {
         startGame.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                GameScreen gameScreen = new GameScreen(4);
+                GameScreen gameScreen = new GameScreen();
                 ((Game) Gdx.app.getApplicationListener()).setScreen(gameScreen);
             }
         });
