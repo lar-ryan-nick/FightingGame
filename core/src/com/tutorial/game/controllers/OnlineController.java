@@ -1,6 +1,5 @@
 package com.tutorial.game.controllers;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 
@@ -20,6 +19,9 @@ public class OnlineController implements InputProcessor {
 
     @Override
     public boolean keyDown(int keycode) {
+        out.println((Input.Keys.toString(keycode) + " down"));
+        return false;
+        /*
         switch (keycode) {
             case Input.Keys.SPACE:
                 out.println("Space down");
@@ -54,10 +56,14 @@ public class OnlineController implements InputProcessor {
             default:
                 return false;
         }
+        */
     }
 
     @Override
     public boolean keyUp(int keycode) {
+        out.println(Input.Keys.toString(keycode) + " up");
+        return false;
+        /*
         switch (keycode) {
             case Input.Keys.RIGHT:
                 out.println("Right up");
@@ -80,6 +86,7 @@ public class OnlineController implements InputProcessor {
             default:
                 return false;
         }
+        */
     }
 
     @Override

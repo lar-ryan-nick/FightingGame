@@ -30,7 +30,7 @@ public class OnlineScreen implements Screen {
         } catch (UnknownHostException e) {
             System.out.println("Unknown host: localhost");
             System.exit(1);
-        } catch  (IOException e) {
+        } catch (IOException e) {
             System.out.println("Can't read");
             System.exit(1);
         }
@@ -47,6 +47,15 @@ public class OnlineScreen implements Screen {
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        try {
+            if (in.ready()) {
+                String line = in.readLine();
+                Gdx.app.log("Received", line);
+            }
+        } catch (IOException e) {
+            System.err.println("Can't read");
+            System.exit(1);
+        }
     }
 
     @Override
@@ -71,6 +80,14 @@ public class OnlineScreen implements Screen {
 
     @Override
     public void dispose() {
-
+        try {
+            out.println("disconnecting");
+            socket.close();
+            in.close();
+            out.close();
+        } catch (IOException e) {
+            System.err.println("Couldn't close connection");
+            System.exit(1);
+        }
     }
 }

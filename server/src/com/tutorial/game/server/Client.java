@@ -21,13 +21,12 @@ public class Client implements Runnable {
 			System.err.println("in or out failed");
 			System.exit(-1);
 		}
-		boolean connected = true;
-		while(connected) {
+		while(true) {
 			try {
 				String line = in.readLine();
 				if (line == null || line.equals("disconnecting")) {
+					System.out.println(line);
 					Thread.currentThread().interrupt();
-					connected = false;
 					return;
 				}
 				out.println(line);
