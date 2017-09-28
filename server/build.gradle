@@ -1,64 +1,55 @@
-buildscript {
-    
+apply plugin: "java"
 
-    repositories {
-        mavenLocal()
-        mavenCentral()
-        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-        jcenter()
-    }
-    dependencies {
-        
+sourceCompatibility = 1.6
+sourceSets.main.java.srcDirs = [ "src/" ]
 
+project.ext.mainClassName = "com.tutorial.game.desktop.ServerLauncher"
+project.ext.assetsDir = new File("../android/assets");
+
+task run(dependsOn: classes, type: JavaExec) {
+    main = project.mainClassName
+    classpath = sourceSets.main.runtimeClasspath
+    standardInput = System.in
+    workingDir = project.assetsDir
+    ignoreExitValue = true
+}
+
+task debug(dependsOn: classes, type: JavaExec) {
+    main = project.mainClassName
+    classpath = sourceSets.main.runtimeClasspath
+    standardInput = System.in
+    workingDir = project.assetsDir
+    ignoreExitValue = true
+    debug = true
+}
+
+task dist(type: Jar) {
+    from files(sourceSets.main.output.classesDir)
+    from files(sourceSets.main.output.resourcesDir)
+    from {configurations.compile.collect {zipTree(it)}}
+    from files(project.assetsDir);
+ 
+    manifest {
+        attributes 'Main-Class': project.mainClassName
     }
 }
 
-allprojects {
-    apply plugin: "eclipse"
-    apply plugin: "idea"
+dist.dependsOn classes
 
-    version = '1.0'
-    ext {
-        appName = "fighting-game-server"
-        gdxVersion = '1.9.6'
-        roboVMVersion = '2.3.1'
-        box2DLightsVersion = '1.4'
-        ashleyVersion = '1.7.0'
-        aiVersion = '1.8.0'
-    }
-
-    repositories {
-        mavenLocal()
-        mavenCentral()
-        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-        maven { url "https://oss.sonatype.org/content/repositories/releases/" }
+eclipse {
+    project {
+        name = appName + "-server"
+        linkedResource name: 'assets', type: '2', location: 'PARENT-1-PROJECT_LOC/android/assets'
     }
 }
 
-project(":desktop") {
-    apply plugin: "java"
-
-
-    dependencies {
-        compile project(":core")
-        compile "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
-        compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
-        compile "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
-        
-    }
-}
-
-project(":core") {
-    apply plugin: "java"
-
-
-    dependencies {
-        compile "com.badlogicgames.gdx:gdx:$gdxVersion"
-        compile "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
-        
-    }
-}
-
-tasks.eclipse.doLast {
-    delete ".project"
+task afterEclipseImport(description: "Post processing after project generation", group: "IDE") {
+  doLast {
+    def classpath = new XmlParser().parse(file(".classpath"))
+    new Node(classpath, "classpathentry", [ kind: 'src', path: 'assets' ]);
+    def writer = new FileWriter(file(".classpath"))
+    def printer = new XmlNodePrinter(new PrintWriter(writer))
+    printer.setPreserveWhitespace(true)
+    printer.print(classpath)
+  }
 }
