@@ -30,42 +30,44 @@ public class Character extends Actor {
 
     public static final short CATEGORY_CHARACTER = 0x0001;
     public static final short CATEGORY_ARM = 0x0002;
-    private final float WORLD_WIDTH = 100;
-    private final float WORLD_HEIGHT = 100 * 9 / 16;
+    protected final float WORLD_WIDTH = 100;
+    protected final float WORLD_HEIGHT = 100 * 9 / 16;
     protected final float CHARACTER_SCALE = 2f / 17;
     protected String characterImagePath;
-    protected Body characterBody;
+    private Body characterBody;
     protected int health;
-    protected boolean isPossessed;
-    protected boolean isMovingLeft;
-    protected boolean isMovingRight;
-    protected boolean isFacingRight;
-    protected boolean isInAir;
-    protected boolean isDead;
-    protected int currWalkNum;
-    protected int currCrouchNum;
-    protected int currPunchNum;
-    protected int currFlinchNum;
-    protected Timer walkingTimer;
-    protected Timer crouchingTimer;
-    protected Timer standingTimer;
-    protected Timer punchingTimer;
-    protected Timer flinchTimer;
-    protected boolean needsUpdate;
+    private boolean isPossessed;
+    private boolean isMovingLeft;
+    private boolean isMovingRight;
+    private boolean isFacingRight;
+    private boolean isInAir;
+    private boolean isDead;
+    private int currWalkNum;
+    private int currCrouchNum;
+    private int currPunchNum;
+    private int currFlinchNum;
+    private Timer walkingTimer;
+    private Timer crouchingTimer;
+    private Timer standingTimer;
+    private Timer punchingTimer;
+    private Timer flinchTimer;
+    private boolean needsUpdate;
 
     public Character(World world) {
         super();
-        characterImagePath = "";
+        characterImagePath = "img/character/character_idle.png";
         isMovingLeft = false;
         isMovingRight = false;
         isInAir = false;
         isPossessed = false;
         isDead = false;
+        isFacingRight = true;
         needsUpdate = false;
         currWalkNum = -1;
         currCrouchNum = -1;
         currPunchNum = -1;
         currFlinchNum = -1;
+        /*
         walkingTimer = new Timer();
         walkingTimer.scheduleTask(new Timer.Task() {
             @Override
@@ -106,6 +108,7 @@ public class Character extends Actor {
             }
         }, 0, .25f);
         flinchTimer.stop();
+        */
         BodyDef box = new BodyDef();
         box.type = BodyDef.BodyType.DynamicBody;
         box.position.set(getX() + getWidth() / 2, getY() + getHeight() / 2);
@@ -113,16 +116,17 @@ public class Character extends Actor {
         characterBody = world.createBody(box);
         characterBody.setUserData(this);
         health = 100;
+        setTexture("img/character/character_idle.png");
     }
 
     public void jump() {
         if (!isDead && !isInAir && currFlinchNum < 0) {
-            //characterBody.setLinearVelocity(0, 500000f);
-            characterBody.applyForceToCenter(0, 10000f * characterBody.getMass(), true);
+            characterBody.applyForceToCenter(0, 100000f * characterBody.getMass(), true);
             isInAir = true;
             currCrouchNum = -1;
             crouchingTimer.stop();
             standingTimer.stop();
+            setTexture("img/character/character_jump_start.png");
         }
     }
 
@@ -134,7 +138,7 @@ public class Character extends Actor {
     }
 
     public void flinch() {
-        float knockbackForce = 1000000f * characterBody.getMass();
+        float knockbackForce = 100000f * characterBody.getMass();
         if (isFacingRight) {
             knockbackForce *= - 1;
         }
@@ -175,8 +179,7 @@ public class Character extends Actor {
         }
     }
 
-    public void setIsCrouching(boolean val)
-    {
+    public void setIsCrouching(boolean val) {
         if (!isDead) {
             if (!isInAir && currPunchNum < 0 && val) {
                 currCrouchNum = 0;
@@ -194,8 +197,10 @@ public class Character extends Actor {
             if (!isInAir && currCrouchNum < 0 && currPunchNum < 0 && currFlinchNum < 0) {
                 if (isMovingLeft || isMovingRight) {
                     setFlip(isMovingLeft, false);
+                    setTexture("img/character/character_walk" + (currWalkNum + 1) + ".png");
                     currWalkNum = (currWalkNum + 1) % 6;
                 } else {
+                    setTexture("img/character/character_idle.png");
                     currWalkNum = -1;
                     walkingTimer.stop();
                 }
@@ -206,9 +211,11 @@ public class Character extends Actor {
     protected void updateCrouchingAnim() {
         if (!isDead) {
             if (!isInAir && currCrouchNum >= 0 && currPunchNum < 0) {
-                if (currCrouchNum < 2) {
+                if (currCrouchNum <= 2) {
+                    setTexture("img/character/character_crouch" + (currCrouchNum + 1) + ".png");
                     ++currCrouchNum;
                 } else {
+                    currCrouchNum = 2;
                     crouchingTimer.stop();
                 }
             } else if (!isInAir && currPunchNum < 0) {
@@ -221,8 +228,10 @@ public class Character extends Actor {
     protected void updateStandingAnim() {
         if (!isDead) {
             if (!isInAir && currCrouchNum >= 0 && currPunchNum < 0) {
+                setTexture("img/character/character_crouch" + (currCrouchNum + 1) + ".png");
                 --currCrouchNum;
             } else if (currPunchNum < 0 && !isInAir) {
+                setTexture("img/character/character_idle.png");
                 standingTimer.stop();
             }
         }
@@ -232,17 +241,23 @@ public class Character extends Actor {
         if (!isDead) {
             if (currPunchNum == 2) {
                 if (isInAir) {
+                    setTexture("img/character/character_jump_loop.png");
                 } else if (currCrouchNum >= 0) {
+                    setTexture("img/character/character_crouch" + (currCrouchNum + 1) + ".png");
                 } else {
+                    setTexture("img/character/character_idle.png");
                 }
                 currPunchNum = -1;
                 punchingTimer.stop();
             } else if (currPunchNum >= 0) {
                 if (isInAir) {
+                    setTexture("img/character/character_jumping_jab" + (currPunchNum + 1) + ".png");
                     ++currPunchNum;
                 } else if (currCrouchNum >= 0) {
+                    setTexture("img/character/character_crouching_jab" + (currPunchNum + 1) + ".png");
                     ++currPunchNum;
                 } else {
+                    setTexture("img/character/character_standing_jab" + (currPunchNum + 1) + ".png");
                     ++currPunchNum;
                 }
             } else {
@@ -258,16 +273,21 @@ public class Character extends Actor {
                     //setTexture("img/character/character_jump_loop.png");
                     return;
                 } else if (currCrouchNum >= 0) {
+                    setTexture("img/character/character_crouch" + (currCrouchNum + 1) + ".png");
                 } else {
+                    setTexture("img/character/character_idle.png");
                 }
                 currFlinchNum = -1;
                 flinchTimer.stop();
             } else if (currFlinchNum >= 0) {
                 if (isInAir) {
+                    setTexture("img/character/character_jumping_damage" + (currFlinchNum + 1) + ".png");
                     ++currFlinchNum;
                 } else if (currCrouchNum >= 0) {
+                    setTexture("img/character/character_crouching_damage" + (currFlinchNum + 1) + ".png");
                     ++currFlinchNum;
                 } else {
+                    setTexture("img/character/character_standing_damage_high" + (currFlinchNum + 1) + ".png");
                     ++currFlinchNum;
                 }
             } else {
@@ -312,6 +332,7 @@ public class Character extends Actor {
             Json json = new Json();
             int leftIndex = characterImagePath.lastIndexOf("/") + 1;
             int rightIndex = characterImagePath.lastIndexOf(".");
+            System.out.println(Gdx.files);
             JsonValue fixtureJSON = new JsonReader().parse(Gdx.files.internal("json/" + characterImagePath.substring(leftIndex, rightIndex) + "_verticies.json")).child();
             int numFixtures = fixtureJSON.asInt();
             fixtureJSON = fixtureJSON.next();
@@ -390,7 +411,7 @@ public class Character extends Actor {
                                 if (player.getY() > getY() + getHeight() && body.getLinearVelocity().y > 0) {
                                     // because jump force will be overriden by act before it has a chance to do anything
                                     if (!isInAir) {
-                                        yVal = 10000f * characterBody.getMass();
+                                        yVal = 1000f * characterBody.getMass();
                                     }
                                     jump();
                                 }
@@ -415,17 +436,20 @@ public class Character extends Actor {
                     xVal /= 5;
                 }
             }
-            // handle jump mechanics
+            // handle jump animation
             if (isInAir) {
                 xVal /= 10;
                 if (characterBody.getPosition().y < getHeight() / 2 + 8 * CHARACTER_SCALE) {
                     if (characterBody.getLinearVelocity().y < 1) {
                         if (characterBody.getPosition().y < getHeight() / 2 + .33f * CHARACTER_SCALE) {
                             isInAir = false;
+                            setTexture("img/character/character_idle.png");
                         } else {
+                            setTexture("img/character/character_jump_end.png");
                         }
                     }
                 } else if (currPunchNum < 0 && currFlinchNum < 0) {
+                    setTexture("img/character/character_jump_loop.png");
                 }
             }
             characterBody.applyForceToCenter(xVal, yVal, true);
@@ -444,7 +468,7 @@ public class Character extends Actor {
 
     public void setFlip(boolean x, boolean y) {
         if (isFacingRight == x) {
-            isFacingRight = x;
+            isFacingRight = !x;
             updateCharacterSize();
         }
     }
@@ -455,6 +479,10 @@ public class Character extends Actor {
 
     public void setIsPossessed(boolean val) {
         isPossessed = val;
+    }
+
+    protected void setTexture(String internalFilePath) {
+        characterImagePath = internalFilePath;
     }
 
     @Override
