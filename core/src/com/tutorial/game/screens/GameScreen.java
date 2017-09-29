@@ -20,6 +20,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.Array;
 import com.tutorial.game.characters.Character;
+import com.tutorial.game.characters.ClientCharacter;
 import com.tutorial.game.controllers.PlayerController;
 
 /**
@@ -29,6 +30,8 @@ import com.tutorial.game.controllers.PlayerController;
 public class GameScreen implements Screen {
 
     public static final short CATEGORY_SCENERY = 0x0004;
+    private final float WORLD_WIDTH = 100;
+    private final float WORLD_HEIGHT = 100 * 9 / 16;
     private int numEnemies;
     private World world;
     private Box2DDebugRenderer renderer;
@@ -36,8 +39,8 @@ public class GameScreen implements Screen {
     private Stage stage;
     private Image backgroundImage;
     private Image floorImage;
-    private Character player;
-    private Array<Character> enemies;
+    private ClientCharacter player;
+    private Array<ClientCharacter> enemies;
 
     public GameScreen() {
         super();
@@ -58,22 +61,18 @@ public class GameScreen implements Screen {
         stage = new Stage();
         Gdx.input.setInputProcessor(stage);
         OrthographicCamera cam = (OrthographicCamera)stage.getCamera();
-        cam.zoom -= .9f;
-        camera.zoom -= .9f;
-        float effectiveViewportWidth = cam.viewportWidth * cam.zoom;
-        Gdx.app.log("width", "" + effectiveViewportWidth);
-        float effectiveViewportHeight = cam.viewportHeight * cam.zoom;
-        Gdx.app.log("height", "" + effectiveViewportHeight);
-        cam.position.y = effectiveViewportHeight / 2;
-        cam.position.x = effectiveViewportWidth / 2;
-        camera.position.y = effectiveViewportHeight / 2;
-        camera.position.x = effectiveViewportWidth / 2;
+        cam.zoom = WORLD_WIDTH / cam.viewportWidth;
+        camera.zoom = WORLD_WIDTH / cam.viewportWidth;
+        cam.position.x = WORLD_WIDTH / 2;
+        cam.position.y = WORLD_HEIGHT / 2;
+        camera.position.x = WORLD_WIDTH / 2;
+        camera.position.y = WORLD_HEIGHT / 2;
         camera.update();
         BodyDef floor = new BodyDef();
         floor.type = BodyDef.BodyType.StaticBody;
         floor.position.set(0, 0);
         EdgeShape line = new EdgeShape();
-        line.set(0, 0, effectiveViewportWidth,  0);
+        line.set(0, 0, WORLD_WIDTH,  0);
         FixtureDef floorFixture = new FixtureDef();
         floorFixture.friction = 1f;
         floorFixture.shape = line;
@@ -83,7 +82,7 @@ public class GameScreen implements Screen {
         BodyDef leftWall = new BodyDef();
         leftWall.type = BodyDef.BodyType.StaticBody;
         leftWall.position.set(0, 0);
-        line.set(0, 0, 0, effectiveViewportHeight);
+        line.set(0, 0, 0, WORLD_HEIGHT);
         FixtureDef wallFixture = new FixtureDef();
         wallFixture.friction = 0f;
         wallFixture.shape = line;
@@ -93,27 +92,27 @@ public class GameScreen implements Screen {
         BodyDef rightWall = new BodyDef();
         rightWall.type = BodyDef.BodyType.StaticBody;
         rightWall.position.set(0, 0);
-        line.set(effectiveViewportWidth, 0, effectiveViewportWidth, effectiveViewportHeight);
+        line.set(WORLD_WIDTH, 0, WORLD_WIDTH, WORLD_HEIGHT);
         world.createBody(rightWall).createFixture(wallFixture);
         line.dispose();
         backgroundImage = new Image(new Texture("img/GameBackgroundImage.jpg"));
-        backgroundImage.setBounds(0, 0, effectiveViewportWidth, effectiveViewportHeight);
+        backgroundImage.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
         //stage.addActor(backgroundImage);
         /*
         floorImage = new Image(new Texture("img/GameFloorImage.jpg"));
         floorImage.setBounds(0, 0, effectiveViewportWidth, 0);
         stage.addActor(floorImage);
         */
-        player = new Character(world);
+        player = new ClientCharacter(world);
         player.setPosition(player.getWidth(), 0);
         stage.addActor(player);
         PlayerController playerController = new PlayerController(player);
         player.addListener(playerController);
         stage.setKeyboardFocus(player);
-        enemies = new Array<Character>(numEnemies);
+        enemies = new Array<ClientCharacter>(numEnemies);
         for (int i = 0; i < numEnemies; i++) {
-            Character enemy = new Character(world);
-            enemy.setPosition((float)((i + 1) * effectiveViewportWidth / (numEnemies + 1)), 0);
+            ClientCharacter enemy = new ClientCharacter(world);
+            enemy.setPosition((float)((i + 1) * WORLD_WIDTH / (numEnemies + 1)), 0);
             stage.addActor(enemy);
             enemies.add(enemy);
         }
@@ -202,7 +201,7 @@ public class GameScreen implements Screen {
     public void dispose() {
         world.dispose();
         player.dispose();
-        for (Character enemy : enemies) {
+        for (ClientCharacter enemy : enemies) {
             enemy.dispose();
         }
         renderer.dispose();

@@ -3,7 +3,16 @@ package com.tutorial.game.screens;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
+import com.badlogic.gdx.physics.box2d.EdgeShape;
+import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.tutorial.game.controllers.OnlineController;
+import com.tutorial.game.controllers.PlayerController;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,9 +27,16 @@ import java.net.UnknownHostException;
 
 public class OnlineScreen implements Screen {
 
+    public static final short CATEGORY_SCENERY = 0x0004;
+    private final float WORLD_WIDTH = 100;
+    private final float WORLD_HEIGHT = 100 * 9 / 16;
     private Socket socket;
     private PrintWriter out;
     private BufferedReader in;
+    private World world;
+    private Box2DDebugRenderer renderer;
+    private OrthographicCamera camera;
+    private Stage stage;
 
     public void listenServer() {
         try{
@@ -39,6 +55,47 @@ public class OnlineScreen implements Screen {
     @Override
     public void show() {
         listenServer();
+        world = new World(new Vector2(0, -200f), true);
+        renderer = new Box2DDebugRenderer();
+        camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        //batch = new SpriteBatch();
+        stage = new Stage();
+        Gdx.input.setInputProcessor(stage);
+        OrthographicCamera cam = (OrthographicCamera)stage.getCamera();
+        cam.zoom -= WORLD_WIDTH / cam.viewportWidth;
+        camera.zoom -= WORLD_WIDTH / cam.viewportWidth;
+        cam.position.x = WORLD_WIDTH / 2;
+        cam.position.y = WORLD_HEIGHT / 2;
+        camera.position.x = WORLD_WIDTH / 2;
+        camera.position.y = WORLD_HEIGHT / 2;
+        camera.update();
+        BodyDef floor = new BodyDef();
+        floor.type = BodyDef.BodyType.StaticBody;
+        floor.position.set(0, 0);
+        EdgeShape line = new EdgeShape();
+        line.set(0, 0, WORLD_WIDTH,  0);
+        FixtureDef floorFixture = new FixtureDef();
+        floorFixture.friction = 1f;
+        floorFixture.shape = line;
+        floorFixture.filter.categoryBits = CATEGORY_SCENERY;
+        floorFixture.filter.maskBits = -1;
+        world.createBody(floor).createFixture(floorFixture);
+        BodyDef leftWall = new BodyDef();
+        leftWall.type = BodyDef.BodyType.StaticBody;
+        leftWall.position.set(0, 0);
+        line.set(0, 0, 0, WORLD_HEIGHT);
+        FixtureDef wallFixture = new FixtureDef();
+        wallFixture.friction = 0f;
+        wallFixture.shape = line;
+        wallFixture.filter.categoryBits = CATEGORY_SCENERY;
+        wallFixture.filter.maskBits = -1;
+        world.createBody(leftWall).createFixture(wallFixture);
+        BodyDef rightWall = new BodyDef();
+        rightWall.type = BodyDef.BodyType.StaticBody;
+        rightWall.position.set(0, 0);
+        line.set(WORLD_WIDTH, 0, WORLD_WIDTH, WORLD_HEIGHT);
+        world.createBody(rightWall).createFixture(wallFixture);
+        line.dispose();
         OnlineController controller = new OnlineController(out);
         Gdx.input.setInputProcessor(controller);
     }

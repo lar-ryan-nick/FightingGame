@@ -26,40 +26,36 @@ import com.tutorial.game.screens.GameScreen;
  * Created by ryanl on 8/6/2017.
  */
 
-public class Character extends Actor implements Disposable {
+public class Character extends Actor {
 
     public static final short CATEGORY_CHARACTER = 0x0001;
     public static final short CATEGORY_ARM = 0x0002;
-    private float characterScale;
-    private String characterImagePath;
-    private Sprite characterImage;
-    private Sprite healthBar;
-    private Body characterBody;
-    private int health;
-    private boolean isPossessed;
-    private boolean isMovingLeft;
-    private boolean isMovingRight;
-    private boolean isInAir;
-    private boolean isDead;
-    private int currWalkNum;
-    private int currCrouchNum;
-    private int currPunchNum;
-    private int currFlinchNum;
-    private Timer walkingTimer;
-    private Timer crouchingTimer;
-    private Timer standingTimer;
-    private Timer punchingTimer;
-    private Timer flinchTimer;
-    private boolean needsUpdate;
+    private final float WORLD_WIDTH = 100;
+    private final float WORLD_HEIGHT = 100 * 9 / 16;
+    protected final float CHARACTER_SCALE = 2f / 17;
+    protected String characterImagePath;
+    protected Body characterBody;
+    protected int health;
+    protected boolean isPossessed;
+    protected boolean isMovingLeft;
+    protected boolean isMovingRight;
+    protected boolean isFacingRight;
+    protected boolean isInAir;
+    protected boolean isDead;
+    protected int currWalkNum;
+    protected int currCrouchNum;
+    protected int currPunchNum;
+    protected int currFlinchNum;
+    protected Timer walkingTimer;
+    protected Timer crouchingTimer;
+    protected Timer standingTimer;
+    protected Timer punchingTimer;
+    protected Timer flinchTimer;
+    protected boolean needsUpdate;
 
     public Character(World world) {
         super();
-        Gdx.app.log("Character", "hi");
-        characterScale = 3f / 17;
         characterImagePath = "";
-        characterImage = new Sprite(new Texture("img/character/character_idle.png"));
-        healthBar = new Sprite(new Texture("img/square.png"));
-        healthBar.setColor(0, 1, 0, 1);
         isMovingLeft = false;
         isMovingRight = false;
         isInAir = false;
@@ -116,19 +112,11 @@ public class Character extends Actor implements Disposable {
         box.fixedRotation = true;
         characterBody = world.createBody(box);
         characterBody.setUserData(this);
-        setTexture("img/character/character_idle.png");
         health = 100;
-    }
-
-    @Override
-    protected void setStage(Stage stage) {
-        super.setStage(stage);
-        updateCharacterSize();
     }
 
     public void jump() {
         if (!isDead && !isInAir && currFlinchNum < 0) {
-            setTexture("img/character/character_jump_start.png");
             //characterBody.setLinearVelocity(0, 500000f);
             characterBody.applyForceToCenter(0, 10000f * characterBody.getMass(), true);
             isInAir = true;
@@ -147,7 +135,7 @@ public class Character extends Actor implements Disposable {
 
     public void flinch() {
         float knockbackForce = 1000000f * characterBody.getMass();
-        if (!characterImage.isFlipX()) {
+        if (isFacingRight) {
             knockbackForce *= - 1;
         }
         characterBody.applyForceToCenter(knockbackForce, 0, true);
@@ -201,15 +189,13 @@ public class Character extends Actor implements Disposable {
         }
     }
 
-    private void updateWalkingAnim() {
+    protected void updateWalkingAnim() {
         if (!isDead) {
             if (!isInAir && currCrouchNum < 0 && currPunchNum < 0 && currFlinchNum < 0) {
                 if (isMovingLeft || isMovingRight) {
                     setFlip(isMovingLeft, false);
-                    setTexture("img/character/character_walk" + (currWalkNum + 1) + ".png");
                     currWalkNum = (currWalkNum + 1) % 6;
                 } else {
-                    setTexture("img/character/character_idle.png");
                     currWalkNum = -1;
                     walkingTimer.stop();
                 }
@@ -217,10 +203,9 @@ public class Character extends Actor implements Disposable {
         }
     }
 
-    private void updateCrouchingAnim() {
+    protected void updateCrouchingAnim() {
         if (!isDead) {
             if (!isInAir && currCrouchNum >= 0 && currPunchNum < 0) {
-                setTexture("img/character/character_crouch" + (currCrouchNum + 1) + ".png");
                 if (currCrouchNum < 2) {
                     ++currCrouchNum;
                 } else {
@@ -233,39 +218,31 @@ public class Character extends Actor implements Disposable {
         }
     }
 
-    private void updateStandingAnim() {
+    protected void updateStandingAnim() {
         if (!isDead) {
             if (!isInAir && currCrouchNum >= 0 && currPunchNum < 0) {
-                setTexture("img/character/character_crouch" + (currCrouchNum + 1) + ".png");
                 --currCrouchNum;
             } else if (currPunchNum < 0 && !isInAir) {
-                setTexture("img/character/character_idle.png");
                 standingTimer.stop();
             }
         }
     }
 
-    private void updatePunchingAnim() {
+    protected void updatePunchingAnim() {
         if (!isDead) {
             if (currPunchNum == 2) {
                 if (isInAir) {
-                    setTexture("img/character/character_jump_loop.png");
                 } else if (currCrouchNum >= 0) {
-                    setTexture("img/character/character_crouch" + (currCrouchNum + 1) + ".png");
                 } else {
-                    setTexture("img/character/character_idle.png");
                 }
                 currPunchNum = -1;
                 punchingTimer.stop();
             } else if (currPunchNum >= 0) {
                 if (isInAir) {
-                    setTexture("img/character/character_jumping_jab" + (currPunchNum + 1) + ".png");
                     ++currPunchNum;
                 } else if (currCrouchNum >= 0) {
-                    setTexture("img/character/character_crouching_jab" + (currPunchNum + 1) + ".png");
                     ++currPunchNum;
                 } else {
-                    setTexture("img/character/character_standing_jab" + (currPunchNum + 1) + ".png");
                     ++currPunchNum;
                 }
             } else {
@@ -274,28 +251,23 @@ public class Character extends Actor implements Disposable {
         }
     }
 
-    private void updateFlinchingAnim() {
+    protected void updateFlinchingAnim() {
         if (!isDead) {
             if (currFlinchNum == 2) {
                 if (isInAir) {
                     //setTexture("img/character/character_jump_loop.png");
                     return;
                 } else if (currCrouchNum >= 0) {
-                    setTexture("img/character/character_crouch" + (currCrouchNum + 1) + ".png");
                 } else {
-                    setTexture("img/character/character_idle.png");
                 }
                 currFlinchNum = -1;
                 flinchTimer.stop();
             } else if (currFlinchNum >= 0) {
                 if (isInAir) {
-                    setTexture("img/character/character_jumping_damage" + (currFlinchNum + 1) + ".png");
                     ++currFlinchNum;
                 } else if (currCrouchNum >= 0) {
-                    setTexture("img/character/character_crouching_damage" + (currFlinchNum + 1) + ".png");
                     ++currFlinchNum;
                 } else {
-                    setTexture("img/character/character_standing_damage_high" + (currFlinchNum + 1) + ".png");
                     ++currFlinchNum;
                 }
             } else {
@@ -304,19 +276,7 @@ public class Character extends Actor implements Disposable {
         }
     }
 
-    private void updateCharacterSize() {
-        if (getStage() != null) {
-            OrthographicCamera cam = (OrthographicCamera) getStage().getCamera();
-            characterScale = cam.viewportWidth * cam.zoom / 100 * 3 / 17;
-        }
-        Texture newTexture = new Texture(characterImagePath);
-        float widthDiffernece = 0;
-        if (characterImage.isFlipX()) {
-            widthDiffernece = getWidth() - newTexture.getWidth() * characterScale;
-        }
-        //Gdx.app.log("Width Difference", "" + widthDiffernece);
-        setSize(newTexture.getWidth() * characterScale, newTexture.getHeight() * characterScale);
-        newTexture.dispose();
+    protected void updateCharacterSize() {
         if (!characterBody.getWorld().isLocked()) {
             needsUpdate = false;
             World world = characterBody.getWorld();
@@ -326,24 +286,23 @@ public class Character extends Actor implements Disposable {
             box.type = BodyDef.BodyType.DynamicBody;
             // make sure foot placement is constant for different animations
             if (currPunchNum < 0 && (currWalkNum >= 0)) {
-                if (!characterImage.isFlipX()) {
-                    box.position.set(getX() + getWidth() / 2 + widthDiffernece, getY() + getHeight() / 2);
+                if (isFacingRight) {
+                    box.position.set(getX() + getWidth() / 2, getY() + getHeight() / 2);
                 } else {
                     box.position.set(getX() + getWidth() / 2, getY() + getHeight() / 2);
                 }
             } else {
-                if (characterImage.isFlipX()) {
-                    box.position.set(getX() + getWidth() / 2 + widthDiffernece, getY() + getHeight() / 2);
+                if (!isFacingRight) {
+                    box.position.set(getX() + getWidth() / 2, getY() + getHeight() / 2);
                 } else {
                     box.position.set(getX() + getWidth() / 2, getY() + getHeight() / 2);
                 }
             }
             // make sure that character didn't fall of the map
-            float worldWidth = characterScale * 17 / 3 * 100;
             if (box.position.x < 0) {
                 box.position.set(0, box.position.y);
-            } else if (box.position.x > worldWidth - getWidth()) {
-                box.position.set(worldWidth - getWidth(), box.position.y);
+            } else if (box.position.x > WORLD_WIDTH - getWidth()) {
+                box.position.set(WORLD_WIDTH - getWidth(), box.position.y);
             }
             box.fixedRotation = true;
             box.linearVelocity.set(velocity);
@@ -361,9 +320,9 @@ public class Character extends Actor implements Disposable {
                 Vector2[] verticies = new Vector2[verticieJSON.asInt()];
                 verticieJSON = verticieJSON.next();
                 for (int j = 0; j < verticies.length; ++j) {
-                    float xVal = verticieJSON.child().asFloat() * characterScale;
-                    float yVal = verticieJSON.child().next().asFloat() * characterScale;
-                    if (characterImage.isFlipX()) {
+                    float xVal = verticieJSON.child().asFloat() * CHARACTER_SCALE;
+                    float yVal = verticieJSON.child().next().asFloat() * CHARACTER_SCALE;
+                    if (!isFacingRight) {
                         xVal *= -1;
                     }
                     Vector2 verticie = new Vector2(xVal, yVal);
@@ -413,7 +372,7 @@ public class Character extends Actor implements Disposable {
                             if (!player.isDead) {
                                 if (player.getX() > getX()) {
                                     setFlip(false, false);
-                                    if (player.getX() - getX() < 16 * characterScale + getWidth() && Math.abs(player.getY() - getY()) <= getHeight()) {
+                                    if (player.getX() - getX() < 16 * CHARACTER_SCALE + getWidth() && Math.abs(player.getY() - getY()) <= getHeight()) {
                                         jab();
                                         setIsMovingRight(false);
                                     } else {
@@ -421,7 +380,7 @@ public class Character extends Actor implements Disposable {
                                     }
                                 } else {
                                     setFlip(true, false);
-                                    if (this.getX() - player.getX() < 16 * characterScale + player.getWidth() && Math.abs(player.getY() - getY()) <= getHeight()) {
+                                    if (this.getX() - player.getX() < 16 * CHARACTER_SCALE + player.getWidth() && Math.abs(player.getY() - getY()) <= getHeight()) {
                                         jab();
                                         setIsMovingLeft(false);
                                     } else {
@@ -459,17 +418,14 @@ public class Character extends Actor implements Disposable {
             // handle jump mechanics
             if (isInAir) {
                 xVal /= 10;
-                if (characterBody.getPosition().y < getHeight() / 2 + 8 * characterScale) {
+                if (characterBody.getPosition().y < getHeight() / 2 + 8 * CHARACTER_SCALE) {
                     if (characterBody.getLinearVelocity().y < 1) {
-                        if (characterBody.getPosition().y < getHeight() / 2 + .33f * characterScale) {
+                        if (characterBody.getPosition().y < getHeight() / 2 + .33f * CHARACTER_SCALE) {
                             isInAir = false;
-                            setTexture("img/character/character_idle.png");
                         } else {
-                            setTexture("img/character/character_jump_end.png");
                         }
                     }
                 } else if (currPunchNum < 0 && currFlinchNum < 0) {
-                    setTexture("img/character/character_jump_loop.png");
                 }
             }
             characterBody.applyForceToCenter(xVal, yVal, true);
@@ -481,29 +437,14 @@ public class Character extends Actor implements Disposable {
     }
 
     @Override
-    public void draw(Batch batch, float parentAlpha) {
-        batch.draw(characterImage, getX(), getY(), getWidth(), getHeight());
-        batch.draw(healthBar, getX() + getWidth() / 2 - 20 * characterScale / 2, getY() + getHeight(), 20 * characterScale * health / 100, 5 * characterScale);
-    }
-
-    @Override
     public void setPosition(float x, float y) {
         super.setPosition(x, y);
         updateCharacterSize();
     }
 
-    private void setTexture(String internalFilePath) {
-        if (!characterImagePath.equals(internalFilePath)) {
-            characterImagePath = internalFilePath;
-            updateCharacterSize();
-            characterImage.getTexture().dispose();
-            characterImage.setTexture(new Texture(characterImagePath));
-        }
-    }
-
     public void setFlip(boolean x, boolean y) {
-        if (characterImage.isFlipX() != x || characterImage.isFlipY() != y) {
-            characterImage.setFlip(x, y);
+        if (isFacingRight == x) {
+            isFacingRight = x;
             updateCharacterSize();
         }
     }
@@ -518,17 +459,11 @@ public class Character extends Actor implements Disposable {
 
     @Override
     public String toString() {
-        return "Character";
-    }
-
-    @Override
-    public void dispose() {
-        characterImage.getTexture().dispose();
-        healthBar.getTexture().dispose();
+        return "x=" + getX() + "&y=" + getY() + "&health=" + health + "&imageName=" + characterImagePath;
     }
 
     public boolean isFacingRight() {
-        return !characterImage.isFlipX();
+        return isFacingRight;
     }
 
     public void changeHealth(int amount) {
@@ -541,7 +476,6 @@ public class Character extends Actor implements Disposable {
             standingTimer.stop();
             punchingTimer.stop();
             flinchTimer.stop();
-            setTexture("img/character/character_ko.png");
         }
     }
 }

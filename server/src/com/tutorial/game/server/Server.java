@@ -1,11 +1,19 @@
 package com.tutorial.game.server;
 
+import com.badlogic.gdx.utils.Array;
+
 import java.net.*;
 import java.io.*;
 
 public class Server {
 
 	private ServerSocket serverSocket;
+	private Array<Client> clients;
+
+	Server() {
+		serverSocket = null;
+		clients = new Array<Client>();
+	}
 
 	public void listenSocket() {
 		int port = 8000;
@@ -21,10 +29,14 @@ public class Server {
 			System.exit(1);
 		}
 		System.out.println("Listening on port " + port);
+		ServerMatch match = new ServerMatch();
 		while (true) {
 			Client client = null;
 			try {
 				client = new Client(serverSocket.accept());
+				clients.add(client);
+				client.setMatch(match);
+				System.out.println("" + clients.size);
 				Thread t = new Thread(client);
 				t.start();
 			} catch (IOException e) {

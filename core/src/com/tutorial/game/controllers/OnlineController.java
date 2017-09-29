@@ -9,6 +9,17 @@ import java.io.PrintWriter;
  * Created by ryanwiener on 9/27/17.
  */
 
+/*
+1 = jump
+2 = move right
+3 = stop moving right
+4 = move left
+5 = stop moving left
+6 = crouch
+7 = stop crouching
+8 = jab
+ */
+
 public class OnlineController implements InputProcessor {
 
     private PrintWriter out;
@@ -19,74 +30,66 @@ public class OnlineController implements InputProcessor {
 
     @Override
     public boolean keyDown(int keycode) {
-        out.println((Input.Keys.toString(keycode) + " down"));
-        return false;
-        /*
         switch (keycode) {
             case Input.Keys.SPACE:
-                out.println("Space down");
+                out.println("1");
                 return true;
             case Input.Keys.UP:
-                out.println("Up down");
+                out.println("1");
                 return true;
             case Input.Keys.RIGHT:
-                out.println("Right down");
+                out.println("2");
                 return true;
             case Input.Keys.LEFT:
-                out.println("Left down");
+                out.println("4");
                 return true;
             case Input.Keys.DOWN:
-                out.println("Down down");
+                out.println("6");
                 return true;
             case Input.Keys.W:
-                out.println("W down");
+                out.println("1");
                 return true;
             case Input.Keys.A:
-                out.println("A down");
+                out.println("4");
                 return true;
             case Input.Keys.D:
-                out.println("D down");
+                out.println("2");
                 return true;
             case Input.Keys.S:
-                out.println("S down");
+                out.println("6");
                 return true;
             case Input.Keys.C:
-                out.println("C down");
+                out.println("8");
                 return true;
             default:
                 return false;
         }
-        */
     }
 
     @Override
     public boolean keyUp(int keycode) {
-        out.println(Input.Keys.toString(keycode) + " up");
-        return false;
-        /*
         switch (keycode) {
             case Input.Keys.RIGHT:
-                out.println("Right up");
+                out.println("3");
                 return true;
             case Input.Keys.LEFT:
-                out.println("Left up");
+                out.println("5");
                 return true;
             case Input.Keys.DOWN:
-                out.println("Down up");
+                out.println("7");
                 return true;
             case Input.Keys.D:
-                out.println("D up");
+                out.println("3");
                 return true;
             case Input.Keys.A:
-                out.println("A up");
+                out.println("5");
                 return true;
             case Input.Keys.S:
-                out.println("S up");
+                out.println("7");
                 return true;
             default:
                 return false;
         }
-        */
     }
 
     @Override

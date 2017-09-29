@@ -6,9 +6,16 @@ import java.io.*;
 public class Client implements Runnable {
 
 	private Socket client;
+	private ServerMatch match;
 
 	Client(Socket cli) {
 		client = cli;
+		match = null;
+	}
+
+	public void setMatch(ServerMatch serverMatch) {
+		match = serverMatch;
+        match.addPlayer();
 	}
 
 	public void run() {
@@ -29,7 +36,12 @@ public class Client implements Runnable {
 					Thread.currentThread().interrupt();
 					return;
 				}
-				out.println(line);
+				if (match != null) {
+                    match.sendInput(line);
+                    out.println(match);
+                } else {
+                    out.println("Waiting for other player");
+                }
 				System.out.println(line);
 			} catch (IOException e) {
 				System.err.println("Read failed");
