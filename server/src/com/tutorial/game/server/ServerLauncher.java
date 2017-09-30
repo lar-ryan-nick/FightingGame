@@ -6,8 +6,6 @@ import com.tutorial.game.TutorialGame;
 public class ServerLauncher {
 
 	public static void main (String[] arg) {
-        Server server = new Server();
-        server.listenSocket();
-		new HeadlessApplication(new TutorialGame());
+		new HeadlessApplication(new ServerApplication());
 	}
 }

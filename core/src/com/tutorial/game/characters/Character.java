@@ -67,7 +67,6 @@ public class Character extends Actor {
         currCrouchNum = -1;
         currPunchNum = -1;
         currFlinchNum = -1;
-        /*
         walkingTimer = new Timer();
         walkingTimer.scheduleTask(new Timer.Task() {
             @Override
@@ -108,7 +107,6 @@ public class Character extends Actor {
             }
         }, 0, .25f);
         flinchTimer.stop();
-        */
         BodyDef box = new BodyDef();
         box.type = BodyDef.BodyType.DynamicBody;
         box.position.set(getX() + getWidth() / 2, getY() + getHeight() / 2);
@@ -332,7 +330,6 @@ public class Character extends Actor {
             Json json = new Json();
             int leftIndex = characterImagePath.lastIndexOf("/") + 1;
             int rightIndex = characterImagePath.lastIndexOf(".");
-            System.out.println(Gdx.files);
             JsonValue fixtureJSON = new JsonReader().parse(Gdx.files.internal("json/" + characterImagePath.substring(leftIndex, rightIndex) + "_verticies.json")).child();
             int numFixtures = fixtureJSON.asInt();
             fixtureJSON = fixtureJSON.next();

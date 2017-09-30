@@ -1,26 +1,24 @@
 package com.tutorial.game.server;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.utils.Timer;
+
 import java.net.*;
 import java.io.*;
+import java.util.UUID;
 
-public class Client implements Runnable {
+public class Client {
 
 	private Socket client;
 	private ServerMatch match;
+	private UUID id;
+	BufferedReader in;
+	PrintWriter out;
 
 	Client(Socket cli) {
 		client = cli;
 		match = null;
-	}
-
-	public void setMatch(ServerMatch serverMatch) {
-		match = serverMatch;
-        match.addPlayer();
-	}
-
-	public void run() {
-		BufferedReader in = null;
-		PrintWriter out = null;
+		id = UUID.randomUUID();
 		try {
 			in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 			out = new PrintWriter(client.getOutputStream(), true);
@@ -28,25 +26,44 @@ public class Client implements Runnable {
 			System.err.println("in or out failed");
 			System.exit(-1);
 		}
-		while(true) {
-			try {
-				String line = in.readLine();
-				if (line == null || line.equals("disconnecting")) {
-					System.out.println(line);
-					Thread.currentThread().interrupt();
-					return;
+		Thread inputThread = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				while(true) {
+					try {
+						String line = null;
+						while ((line = in.readLine()) != null) {
+							Gdx.app.log("Received", line);
+							if (line.equals("disconnecting")) {
+								Thread.currentThread().interrupt();
+								return;
+							} else {
+								match.sendInput(line, id);
+							}
+						}
+					} catch (IOException e) {
+						System.err.println("Read failed");
+						System.exit(1);
+					}
 				}
-				if (match != null) {
-                    match.sendInput(line);
-                    out.println(match);
-                } else {
-                    out.println("Waiting for other player");
-                }
-				System.out.println(line);
-			} catch (IOException e) {
-				System.err.println("Read failed");
-				System.exit(1);
 			}
-		}
+		});
+		inputThread.start();
+		Timer outputTimer = new Timer();
+		outputTimer.scheduleTask(new Timer.Task() {
+			@Override
+			public void run() {
+				out.println(match);
+			}
+		}, 0, 1 / 60f);
+	}
+
+	public void setMatch(ServerMatch serverMatch) {
+		match = serverMatch;
+        match.addPlayer(id);
+	}
+
+	public ServerMatch getMatch() {
+		return match;
 	}
 }

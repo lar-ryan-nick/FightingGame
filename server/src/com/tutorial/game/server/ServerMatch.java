@@ -17,31 +17,33 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Disposable;
 import com.tutorial.game.characters.Character;
+
+import java.util.UUID;
 
 /**
  * Created by ryanl on 9/28/2017.
  */
 
-public class ServerMatch implements ApplicationListener {
+public class ServerMatch implements Disposable {
 
     public static final short CATEGORY_SCENERY = 0x0004;
     private final float WORLD_WIDTH = 100;
     private final float WORLD_HEIGHT = 100 * 9 / 16;
     private World world;
     private Array<Character> players;
+    private Array<ServerController> controllers;
 
     ServerMatch() {
         world = new World(new Vector2(0, -200f), true);
-    }
-
-    @Override
-    public void create() {
+        players = new Array<Character>();
+        controllers = new Array<ServerController>();
         BodyDef floor = new BodyDef();
         floor.type = BodyDef.BodyType.StaticBody;
         floor.position.set(0, 0);
         EdgeShape line = new EdgeShape();
-        line.set(0, WORLD_HEIGHT / 3, WORLD_WIDTH, WORLD_HEIGHT);
+        line.set(0, 0, WORLD_WIDTH, 0);
         FixtureDef floorFixture = new FixtureDef();
         floorFixture.friction = 1f;
         floorFixture.shape = line;
@@ -51,7 +53,7 @@ public class ServerMatch implements ApplicationListener {
         BodyDef leftWall = new BodyDef();
         leftWall.type = BodyDef.BodyType.StaticBody;
         leftWall.position.set(0, 0);
-        line.set(-50, 0, -50, 56.25f);
+        line.set(0, 0, 0, WORLD_HEIGHT);
         FixtureDef wallFixture = new FixtureDef();
         wallFixture.friction = 0f;
         wallFixture.shape = line;
@@ -115,34 +117,27 @@ public class ServerMatch implements ApplicationListener {
         });
     }
 
-    public void addPlayer() {
+    public void addPlayer(UUID id) {
         Character player = new Character(world);
         player.setPosition(0, 0);
         players.add(player);
+        ServerController controller = new ServerController(player, id);
+        controllers.add(controller);
     }
 
-    public void sendInput(String input) {
-
+    public void sendInput(String input, UUID uuid) {
+        for (int i = 0; i < controllers.size; ++i) {
+            if (controllers.get(i).getUUID().equals(uuid)) {
+                controllers.get(i).processInput(Integer.parseInt(input));
+            }
+        }
     }
 
-    @Override
-    public void resize(int width, int height) {
-
-    }
-
-    @Override
     public void render() {
-
-    }
-
-    @Override
-    public void pause() {
-
-    }
-
-    @Override
-    public void resume() {
-
+        world.step(1 / 60f, 8, 3);
+        for (int i = 0; i < players.size; ++i) {
+            players.get(i).act(Gdx.graphics.getDeltaTime());
+        }
     }
 
     @Override

@@ -1,27 +1,28 @@
 package com.tutorial.game.server;
 
+import com.badlogic.gdx.ApplicationAdapter;
+import com.badlogic.gdx.ApplicationListener;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Disposable;
 
 import java.net.*;
 import java.io.*;
 
-public class Server {
+public class Server implements Runnable, Disposable {
 
 	private ServerSocket serverSocket;
 	private Array<Client> clients;
 
 	Server() {
-		serverSocket = null;
-		clients = new Array<Client>();
-	}
-
-	public void listenSocket() {
 		int port = 8000;
 		/*
 		if (System.getenv("PORT") != null) {
 			port = Integer.parseInt(System.getenv("PORT"));
 		}
 		*/
+		serverSocket = null;
+		clients = new Array<Client>();
 		try {
 			serverSocket = new ServerSocket(port);
 		} catch (IOException e) {
@@ -29,16 +30,17 @@ public class Server {
 			System.exit(1);
 		}
 		System.out.println("Listening on port " + port);
-		ServerMatch match = new ServerMatch();
+	}
+
+	@Override
+	public void run() {
 		while (true) {
 			Client client = null;
 			try {
 				client = new Client(serverSocket.accept());
-				clients.add(client);
-				client.setMatch(match);
-				System.out.println("" + clients.size);
-				Thread t = new Thread(client);
-				t.start();
+				synchronized (clients) {
+					clients.add(client);
+				}
 			} catch (IOException e) {
 				System.err.println("Accept failed");
 				System.exit(1);
@@ -46,7 +48,12 @@ public class Server {
 		}
 	}
 
-	protected void finalize() {
+	public Array<Client> getClients() {
+		return clients;
+	}
+
+	@Override
+	public void dispose() {
 		try {
 			serverSocket.close();
 		} catch (IOException e) {
