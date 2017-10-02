@@ -30,7 +30,8 @@ public class MainScreen implements Screen {
     private Image backgroundImage;
     private BitmapFont impactWhite48;
     private Label title;
-    private TextButton startGame;
+    private TextButton startLocalGame;
+    private TextButton startOnlineGame;
 
     @Override
     public void show() {
@@ -50,16 +51,26 @@ public class MainScreen implements Screen {
         title = new Label("Fighter", labelStyle);
         title.setBounds((Gdx.graphics.getWidth() - title.getPrefWidth()) / 2, Gdx.graphics.getHeight() - title.getPrefHeight(), title.getPrefWidth(), title.getPrefHeight());
         stage.addActor(title);
-        startGame = new TextButton("Start Game", new TextButton.TextButtonStyle(null, null, null, impactWhite48));
-        startGame.setBounds(0, 0, startGame.getPrefWidth(), startGame.getPrefHeight());
-        startGame.addListener(new ClickListener() {
+        startLocalGame = new TextButton("Start Local Game", new TextButton.TextButtonStyle(null, null, null, impactWhite48));
+        startLocalGame.setBounds(0, 0, startLocalGame.getPrefWidth(), startLocalGame.getPrefHeight());
+        startLocalGame.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 GameScreen gameScreen = new GameScreen();
                 ((Game) Gdx.app.getApplicationListener()).setScreen(gameScreen);
             }
         });
-        stage.addActor(startGame);
+        stage.addActor(startLocalGame);
+        startOnlineGame = new TextButton("Start Online Game", new TextButton.TextButtonStyle(null, null, null, impactWhite48));
+        startOnlineGame.setBounds(Gdx.graphics.getWidth() - startOnlineGame.getPrefWidth(), 0, startOnlineGame.getPrefWidth(), startOnlineGame.getPrefHeight());
+        startOnlineGame.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                OnlineScreen onlineScreen = new OnlineScreen();
+                ((Game) Gdx.app.getApplicationListener()).setScreen(onlineScreen);
+            }
+        });
+        stage.addActor(startOnlineGame);
     }
 
     @Override

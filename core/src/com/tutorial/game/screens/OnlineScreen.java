@@ -10,16 +10,21 @@ import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.EdgeShape;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.utils.Array;
+import com.tutorial.game.characters.Character;
+import com.tutorial.game.characters.ClientCharacter;
 import com.tutorial.game.controllers.OnlineController;
-import com.tutorial.game.controllers.PlayerController;
-
+import com.tutorial.game.controllers.OnlinePlayerController;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.UUID;
 
 /**
  * Created by ryanwiener on 9/27/17.
@@ -62,8 +67,8 @@ public class OnlineScreen implements Screen {
         stage = new Stage();
         Gdx.input.setInputProcessor(stage);
         OrthographicCamera cam = (OrthographicCamera)stage.getCamera();
-        cam.zoom -= WORLD_WIDTH / cam.viewportWidth;
-        camera.zoom -= WORLD_WIDTH / cam.viewportWidth;
+        cam.zoom = WORLD_WIDTH / cam.viewportWidth;
+        camera.zoom = WORLD_WIDTH / cam.viewportWidth;
         cam.position.x = WORLD_WIDTH / 2;
         cam.position.y = WORLD_HEIGHT / 2;
         camera.position.x = WORLD_WIDTH / 2;
@@ -96,7 +101,17 @@ public class OnlineScreen implements Screen {
         line.set(WORLD_WIDTH, 0, WORLD_WIDTH, WORLD_HEIGHT);
         world.createBody(rightWall).createFixture(wallFixture);
         line.dispose();
-        OnlineController controller = new OnlineController(out);
+        String id = null;
+        try {
+            id = in.readLine();
+        } catch (IOException e) {
+            System.err.println("Couldn't read id");
+            System.exit(-1);
+        }
+        ClientCharacter player = new ClientCharacter(world);
+        player.setPosition(player.getWidth(), 0);
+        stage.addActor(player);
+        OnlinePlayerController controller = new OnlinePlayerController(player, out, UUID.fromString(id));
         Gdx.input.setInputProcessor(controller);
     }
 
@@ -105,14 +120,58 @@ public class OnlineScreen implements Screen {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         try {
-            if (in.ready()) {
-                String line = in.readLine();
+            String line = null;
+            while (in.ready()) {
+                line = in.readLine();
                 Gdx.app.log("Received", line);
+            }
+            if (line != null) {
+                HashMap<String, String> params = parseString(line);
+                if (params != null) {
+                    for (int i = 0; i < Integer.parseInt(params.get("numPlayers")); ++i) {
+                        Array<Actor> actors = stage.getActors();
+                        boolean found = false;
+                        for (int j = 0; j < actors.size; ++j) {
+                            if (actors.get(j) instanceof Character && ((Character) actors.get(j)).getController() instanceof OnlineController) {
+                                if (((OnlineController) ((Character) actors.get(j)).getController()).getUUID().equals(UUID.fromString(params.get("uuid" + i)))) {
+                                    ((Character) actors.get(j)).updateFromMap(params, i);
+                                    found = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!found) {
+                            ClientCharacter player = new ClientCharacter(world);
+                            OnlineController controller = new OnlineController(player, UUID.fromString(params.get("uuid" + i)));
+                            player.setPosition(player.getWidth(), 0);
+                            stage.addActor(player);
+                        }
+                    }
+                }
             }
         } catch (IOException e) {
             System.err.println("Can't read");
             System.exit(1);
         }
+        world.step(1 / 60f, 8, 3);
+        renderer.render(world, camera.combined);
+        stage.act(delta);
+        stage.draw();
+    }
+
+    public HashMap<String, String> parseString(String s) {
+        HashMap<String, String> result = new HashMap<String, String>();
+        String[] params = s.split("&");
+        for (int i = 0; i < params.length; ++i) {
+            String[] keyVal = params[i].split("=");
+            if (keyVal.length > 1) {
+                result.put(keyVal[0], keyVal[1]);
+            }
+        }
+        if (result.isEmpty()) {
+            return null;
+        }
+        return result;
     }
 
     @Override

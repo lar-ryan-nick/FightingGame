@@ -59,7 +59,6 @@ public class GameScreen implements Screen {
         camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         //batch = new SpriteBatch();
         stage = new Stage();
-        Gdx.input.setInputProcessor(stage);
         OrthographicCamera cam = (OrthographicCamera)stage.getCamera();
         cam.zoom = WORLD_WIDTH / cam.viewportWidth;
         camera.zoom = WORLD_WIDTH / cam.viewportWidth;
@@ -107,8 +106,7 @@ public class GameScreen implements Screen {
         player.setPosition(player.getWidth(), 0);
         stage.addActor(player);
         PlayerController playerController = new PlayerController(player);
-        player.addListener(playerController);
-        stage.setKeyboardFocus(player);
+        Gdx.input.setInputProcessor(playerController);
         enemies = new Array<ClientCharacter>(numEnemies);
         for (int i = 0; i < numEnemies; i++) {
             ClientCharacter enemy = new ClientCharacter(world);

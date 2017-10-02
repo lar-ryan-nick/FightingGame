@@ -8,7 +8,7 @@ public class TutorialGame extends Game {
 	
 	@Override
 	public void create() {
-		setScreen(new OnlineScreen());
+		setScreen(new MainScreen());
 	}
 
 	@Override

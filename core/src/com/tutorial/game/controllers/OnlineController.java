@@ -2,8 +2,10 @@ package com.tutorial.game.controllers;
 
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
+import com.tutorial.game.characters.Character;
 
 import java.io.PrintWriter;
+import java.util.UUID;
 
 /**
  * Created by ryanwiener on 9/27/17.
@@ -20,105 +22,16 @@ import java.io.PrintWriter;
 8 = jab
  */
 
-public class OnlineController implements InputProcessor {
+public class OnlineController extends Controller {
 
-    private PrintWriter out;
+    private UUID id;
 
-    public OnlineController(PrintWriter o) {
-        out = o;
+    public OnlineController(Character character, UUID uuid) {
+        super(character);
+        id = uuid;
     }
 
-    @Override
-    public boolean keyDown(int keycode) {
-        switch (keycode) {
-            case Input.Keys.SPACE:
-                out.println("1");
-                return true;
-            case Input.Keys.UP:
-                out.println("1");
-                return true;
-            case Input.Keys.RIGHT:
-                out.println("2");
-                return true;
-            case Input.Keys.LEFT:
-                out.println("4");
-                return true;
-            case Input.Keys.DOWN:
-                out.println("6");
-                return true;
-            case Input.Keys.W:
-                out.println("1");
-                return true;
-            case Input.Keys.A:
-                out.println("4");
-                return true;
-            case Input.Keys.D:
-                out.println("2");
-                return true;
-            case Input.Keys.S:
-                out.println("6");
-                return true;
-            case Input.Keys.C:
-                out.println("8");
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    @Override
-    public boolean keyUp(int keycode) {
-        switch (keycode) {
-            case Input.Keys.RIGHT:
-                out.println("3");
-                return true;
-            case Input.Keys.LEFT:
-                out.println("5");
-                return true;
-            case Input.Keys.DOWN:
-                out.println("7");
-                return true;
-            case Input.Keys.D:
-                out.println("3");
-                return true;
-            case Input.Keys.A:
-                out.println("5");
-                return true;
-            case Input.Keys.S:
-                out.println("7");
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    @Override
-    public boolean keyTyped(char character) {
-        return false;
-    }
-
-    @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        return false;
-    }
-
-    @Override
-    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        return false;
-    }
-
-    @Override
-    public boolean touchDragged(int screenX, int screenY, int pointer) {
-        return false;
-    }
-
-    @Override
-    public boolean mouseMoved(int screenX, int screenY) {
-        return false;
-    }
-
-    @Override
-    public boolean scrolled(int amount) {
-        return false;
+    public UUID getUUID() {
+        return id;
     }
 }

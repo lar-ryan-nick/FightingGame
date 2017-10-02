@@ -22,6 +22,7 @@ public class Client {
 		try {
 			in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 			out = new PrintWriter(client.getOutputStream(), true);
+			out.println(id.toString());
 		} catch (IOException e) {
 			System.err.println("in or out failed");
 			System.exit(-1);
@@ -53,9 +54,11 @@ public class Client {
 		outputTimer.scheduleTask(new Timer.Task() {
 			@Override
 			public void run() {
-				out.println(match);
+				if (match != null) {
+					out.println(match);
+				}
 			}
-		}, 0, 1 / 60f);
+		}, 0, 1 / 100f);
 	}
 
 	public void setMatch(ServerMatch serverMatch) {

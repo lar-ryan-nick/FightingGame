@@ -1,67 +1,57 @@
 package com.tutorial.game.controllers;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.Event;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.badlogic.gdx.scenes.scene2d.actions.ColorAction;
 import com.tutorial.game.characters.Character;
 
+import java.io.PrintWriter;
+import java.util.UUID;
+
 /**
- * Created by ryanl on 8/9/2017.
+ * Created by ryanl on 9/30/2017.
  */
 
-public class PlayerController extends Controller implements InputProcessor {
+public class OnlinePlayerController extends OnlineController implements InputProcessor {
 
-    public PlayerController() {
-        super();
-    }
+    private PrintWriter out;
 
-    public PlayerController(Character character) {
-        super();
-        possessCharacter(character);
-    }
-
-    @Override
-    public void possessCharacter(Character character) {
-        super.possessCharacter(character);
+    public OnlinePlayerController(Character character, PrintWriter o, UUID uuid) {
+        super(character, uuid);
+        out = o;
     }
 
     @Override
     public boolean keyDown(int keycode) {
         switch (keycode) {
             case Input.Keys.SPACE:
-                player.jump();
+                out.println("1");
                 return true;
             case Input.Keys.UP:
-                player.jump();
+                out.println("1");
                 return true;
             case Input.Keys.RIGHT:
-                player.setIsMovingRight(true);
+                out.println("2");
                 return true;
             case Input.Keys.LEFT:
-                player.setIsMovingLeft(true);
+                out.println("4");
                 return true;
             case Input.Keys.DOWN:
-                player.setIsCrouching(true);
+                out.println("6");
                 return true;
             case Input.Keys.W:
-                player.jump();
+                out.println("1");
                 return true;
             case Input.Keys.A:
-                player.setIsMovingLeft(true);
+                out.println("4");
                 return true;
             case Input.Keys.D:
-                player.setIsMovingRight(true);
+                out.println("2");
                 return true;
             case Input.Keys.S:
-                player.setIsCrouching(true);
+                out.println("6");
                 return true;
             case Input.Keys.C:
-                player.jab();
+                out.println("8");
                 return true;
             default:
                 return false;
@@ -72,22 +62,22 @@ public class PlayerController extends Controller implements InputProcessor {
     public boolean keyUp(int keycode) {
         switch (keycode) {
             case Input.Keys.RIGHT:
-                player.setIsMovingRight(false);
+                out.println("3");
                 return true;
             case Input.Keys.LEFT:
-                player.setIsMovingLeft(false);
+                out.println("5");
                 return true;
             case Input.Keys.DOWN:
-                player.setIsCrouching(false);
+                out.println("7");
                 return true;
             case Input.Keys.D:
-                player.setIsMovingRight(false);
+                out.println("3");
                 return true;
             case Input.Keys.A:
-                player.setIsMovingLeft(false);
+                out.println("5");
                 return true;
             case Input.Keys.S:
-                player.setIsCrouching(false);
+                out.println("7");
                 return true;
             default:
                 return false;

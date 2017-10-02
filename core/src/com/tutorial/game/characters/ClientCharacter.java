@@ -23,14 +23,6 @@ public class ClientCharacter extends Character implements Disposable {
     }
 
     @Override
-    protected void updateCharacterSize() {
-        Texture newTexture = new Texture(characterImagePath);
-        setSize(newTexture.getWidth() * CHARACTER_SCALE, newTexture.getHeight() * CHARACTER_SCALE);
-        newTexture.dispose();
-        super.updateCharacterSize();
-    }
-
-    @Override
     public void draw(Batch batch, float parentAlpha) {
         batch.draw(characterImage, getX(), getY(), getWidth(), getHeight());
         batch.draw(healthBar, getX() + getWidth() / 2 - 20 * CHARACTER_SCALE / 2, getY() + getHeight(), 20 * CHARACTER_SCALE * health / 100, 5 * CHARACTER_SCALE);

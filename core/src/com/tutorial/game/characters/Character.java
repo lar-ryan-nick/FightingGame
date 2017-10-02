@@ -1,10 +1,8 @@
 package com.tutorial.game.characters;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.TextureData;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
@@ -13,14 +11,16 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.Timer;
+import com.tutorial.game.controllers.Controller;
+import com.tutorial.game.controllers.OnlineController;
 import com.tutorial.game.screens.GameScreen;
+
+import java.util.HashMap;
 
 /**
  * Created by ryanl on 8/6/2017.
@@ -36,7 +36,7 @@ public class Character extends Actor {
     protected String characterImagePath;
     private Body characterBody;
     protected int health;
-    private boolean isPossessed;
+    private Controller controller;
     private boolean isMovingLeft;
     private boolean isMovingRight;
     private boolean isFacingRight;
@@ -55,11 +55,13 @@ public class Character extends Actor {
 
     public Character(World world) {
         super();
+        setSize(17 * CHARACTER_SCALE, 42 * CHARACTER_SCALE);
+        controller = null;
         characterImagePath = "img/character/character_idle.png";
         isMovingLeft = false;
         isMovingRight = false;
         isInAir = false;
-        isPossessed = false;
+        controller = null;
         isDead = false;
         isFacingRight = true;
         needsUpdate = false;
@@ -73,7 +75,7 @@ public class Character extends Actor {
             public void run() {
                 updateWalkingAnim();
             }
-        }, 0, .125f);
+        }, 0, .1f);
         walkingTimer.stop();
         crouchingTimer = new Timer();
         crouchingTimer.scheduleTask(new Timer.Task() {
@@ -81,7 +83,7 @@ public class Character extends Actor {
             public void run() {
                 updateCrouchingAnim();
             }
-        }, 0, .1f);
+        }, 0, .05f);
         crouchingTimer.stop();
         standingTimer = new Timer();
         standingTimer.scheduleTask(new Timer.Task() {
@@ -89,7 +91,7 @@ public class Character extends Actor {
             public void run() {
                 updateStandingAnim();
             }
-        }, 0, .1f);
+        }, 0, .05f);
         standingTimer.stop();
         punchingTimer = new Timer();
         punchingTimer.scheduleTask(new Timer.Task() {
@@ -97,7 +99,7 @@ public class Character extends Actor {
             public void run() {
                 updatePunchingAnim();
             }
-        }, 0, .2f);
+        }, 0, .075f);
         punchingTimer.stop();
         flinchTimer = new Timer();
         flinchTimer.scheduleTask(new Timer.Task() {
@@ -105,7 +107,7 @@ public class Character extends Actor {
             public void run() {
                 updateFlinchingAnim();
             }
-        }, 0, .25f);
+        }, 0, .125f);
         flinchTimer.stop();
         BodyDef box = new BodyDef();
         box.type = BodyDef.BodyType.DynamicBody;
@@ -136,7 +138,7 @@ public class Character extends Actor {
     }
 
     public void flinch() {
-        float knockbackForce = 100000f * characterBody.getMass();
+        float knockbackForce = 1000f * characterBody.getMass();
         if (isFacingRight) {
             knockbackForce *= - 1;
         }
@@ -212,7 +214,8 @@ public class Character extends Actor {
                 if (currCrouchNum <= 2) {
                     setTexture("img/character/character_crouch" + (currCrouchNum + 1) + ".png");
                     ++currCrouchNum;
-                } else {
+                }
+                if (currCrouchNum > 2) {
                     currCrouchNum = 2;
                     crouchingTimer.stop();
                 }
@@ -295,6 +298,15 @@ public class Character extends Actor {
     }
 
     protected void updateCharacterSize() {
+        TextureData textureData = TextureData.Factory.loadFromFile(Gdx.files.internal(characterImagePath), true);
+        setSize(textureData.getWidth() * CHARACTER_SCALE, textureData.getHeight() * CHARACTER_SCALE);
+        float widthDifference = 0;
+        if (!isFacingRight) {
+            widthDifference = getWidth() - textureData.getWidth() * CHARACTER_SCALE;
+        }
+        System.out.println("Width: " + getWidth());
+        System.out.println("New width: " + textureData.getWidth() * CHARACTER_SCALE);
+        textureData.disposePixmap();
         if (!characterBody.getWorld().isLocked()) {
             needsUpdate = false;
             World world = characterBody.getWorld();
@@ -304,17 +316,17 @@ public class Character extends Actor {
             box.type = BodyDef.BodyType.DynamicBody;
             // make sure foot placement is constant for different animations
             if (currPunchNum < 0 && (currWalkNum >= 0)) {
-                if (isFacingRight) {
+             //   if (isFacingRight) {
+             //       box.position.set(getX() + getWidth() / 2 + widthDifference, getY() + getHeight() / 2);
+             //   } else {
                     box.position.set(getX() + getWidth() / 2, getY() + getHeight() / 2);
-                } else {
-                    box.position.set(getX() + getWidth() / 2, getY() + getHeight() / 2);
-                }
+             //   }
             } else {
-                if (!isFacingRight) {
-                    box.position.set(getX() + getWidth() / 2, getY() + getHeight() / 2);
-                } else {
-                    box.position.set(getX() + getWidth() / 2, getY() + getHeight() / 2);
-                }
+         //       if (!isFacingRight) {
+                    box.position.set(getX() + getWidth() / 2 + widthDifference, getY() + getHeight() / 2);
+            //    } else {
+            //        box.position.set(getX() + getWidth() / 2, getY() + getHeight() / 2);
+          //      }
             }
             // make sure that character didn't fall of the map
             if (box.position.x < 0) {
@@ -379,14 +391,14 @@ public class Character extends Actor {
         if (!isDead) {
             float xVal = 0, yVal = 0;
             // If not current player, find and attack them
-            if (!isPossessed) {
+            if (controller == null) {
                 World world = characterBody.getWorld();
                 Array<Body> bodies = new Array<Body>(world.getBodyCount());
                 world.getBodies(bodies);
                 for (Body body : bodies) {
                     if (body.getUserData() instanceof Character) {
                         Character player = ((Character) body.getUserData());
-                        if (player.isPossessed) {
+                        if (controller != null) {
                             if (!player.isDead) {
                                 if (player.getX() > getX()) {
                                     setFlip(false, false);
@@ -436,9 +448,9 @@ public class Character extends Actor {
             // handle jump animation
             if (isInAir) {
                 xVal /= 10;
-                if (characterBody.getPosition().y < getHeight() / 2 + 8 * CHARACTER_SCALE) {
+                if (characterBody.getPosition().y < getHeight() / 2 + 10 * CHARACTER_SCALE) {
                     if (characterBody.getLinearVelocity().y < 1) {
-                        if (characterBody.getPosition().y < getHeight() / 2 + .33f * CHARACTER_SCALE) {
+                        if (characterBody.getPosition().y < getHeight() / 2 + 3 * CHARACTER_SCALE) {
                             isInAir = false;
                             setTexture("img/character/character_idle.png");
                         } else {
@@ -470,23 +482,64 @@ public class Character extends Actor {
         }
     }
 
-    public boolean getIsPossessed() {
-        return isPossessed;
+    public Controller getController() {
+        return controller;
     }
 
-    public void setIsPossessed(boolean val) {
-        isPossessed = val;
+    public void setController(Controller control) {
+        controller = control;
     }
 
     protected void setTexture(String internalFilePath) {
-        characterImagePath = internalFilePath;
+        if (!characterImagePath.equals(internalFilePath)) {
+            characterImagePath = internalFilePath;
+            updateCharacterSize();
+        }
     }
 
     @Override
     public String toString() {
-        return "x=" + getX() + "&y=" + getY() + "&health=" + health + "&imageName=" + characterImagePath;
+        String uuid = "";
+        if (getController() instanceof OnlineController) {
+            uuid = "uuid=" + ((OnlineController) getController()).getUUID().toString() + "&";
+        }
+        return uuid + "x=" + getX() + "&y=" + getY() + "&velX=" + characterBody.getLinearVelocity().x + "&velY=" + characterBody.getLinearVelocity().y + "&facingRight=" + isFacingRight + "&health=" + health + "&imageName=" + characterImagePath;
     }
 
+    public String serialize(int i) {
+        String uuid = "";
+        if (getController() instanceof OnlineController) {
+            uuid = "uuid" + i + "=" + ((OnlineController) getController()).getUUID().toString() + "&";
+        }
+        return uuid + "x" + i + "=" + getX() + "&y" + i + "=" + getY() + "&velX" + i + "=" + characterBody.getLinearVelocity().x + "&velY" + i + "=" + characterBody.getLinearVelocity().y + "&facingRight" + i + "=" + isFacingRight + "&health" + i + "=" + health + "&imageName" + i + "=" + characterImagePath;
+    }
+
+    public void updateFromMap(HashMap<String, String> vals, int index) {
+        //HashMap<String, String> vals = parseString(s);
+        if (vals != null) {
+            super.setPosition(Float.parseFloat(vals.get("x" + index)), Float.parseFloat(vals.get("y" + index)));
+            characterBody.setLinearVelocity(Float.parseFloat(vals.get("velX" + index)), Float.parseFloat(vals.get("velY" + index)));
+            setFlip(!Boolean.parseBoolean(vals.get("facingRight" + index)), false);
+            health = Integer.parseInt(vals.get("health" + index));
+            setTexture(vals.get("imageName" + index));
+        }
+    }
+/*
+    public HashMap<String, String> parseString(String s) {
+        HashMap<String, String> result = new HashMap<String, String>();
+        String[] params = s.split("&");
+        for (int i = 0; i < params.length; ++i) {
+            String[] keyVal = params[i].split("=");
+            if (keyVal.length > 1) {
+                result.put(keyVal[0], keyVal[1]);
+            }
+        }
+        if (result.isEmpty()) {
+            return null;
+        }
+        return result;
+    }
+*/
     public boolean isFacingRight() {
         return isFacingRight;
     }

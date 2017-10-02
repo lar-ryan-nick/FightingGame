@@ -119,7 +119,7 @@ public class ServerMatch implements Disposable {
 
     public void addPlayer(UUID id) {
         Character player = new Character(world);
-        player.setPosition(0, 0);
+        player.setPosition(player.getWidth(), 0);
         players.add(player);
         ServerController controller = new ServerController(player, id);
         controllers.add(controller);
@@ -147,9 +147,9 @@ public class ServerMatch implements Disposable {
 
     @Override
     public String toString() {
-        String serialization = "";
+        String serialization = "numPlayers=" + players.size;
         for (int i = 0; i < players.size; ++i) {
-            serialization += players.get(i).toString();
+            serialization += "&" + players.get(i).serialize(i);
         }
         return serialization;
     }
