@@ -12,7 +12,7 @@ import java.io.*;
 public class Server implements Runnable, Disposable {
 
 	private ServerSocket serverSocket;
-	private Array<Client> clients;
+	private Array<Connection> connections;
 
 	Server() {
 		int port = 8000;
@@ -22,7 +22,7 @@ public class Server implements Runnable, Disposable {
 		}
 		*/
 		serverSocket = null;
-		clients = new Array<Client>();
+		connections = new Array<Connection>();
 		try {
 			serverSocket = new ServerSocket(port);
 		} catch (IOException e) {
@@ -35,11 +35,11 @@ public class Server implements Runnable, Disposable {
 	@Override
 	public void run() {
 		while (true) {
-			Client client = null;
+			Connection connection = null;
 			try {
-				client = new Client(serverSocket.accept());
-				synchronized (clients) {
-					clients.add(client);
+				connection = new Connection(serverSocket.accept());
+				synchronized (connections) {
+					connections.add(connection);
 				}
 			} catch (IOException e) {
 				System.err.println("Accept failed");
@@ -48,8 +48,8 @@ public class Server implements Runnable, Disposable {
 		}
 	}
 
-	public Array<Client> getClients() {
-		return clients;
+	public Array<Connection> getConnections() {
+		return connections;
 	}
 
 	@Override

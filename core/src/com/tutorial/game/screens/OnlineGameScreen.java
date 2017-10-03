@@ -15,7 +15,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Array;
 import com.tutorial.game.characters.Character;
 import com.tutorial.game.characters.ClientCharacter;
-import com.tutorial.game.controllers.OnlineController;
+import com.tutorial.game.controllers.NetworkController;
 import com.tutorial.game.controllers.OnlinePlayerController;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -30,7 +30,7 @@ import java.util.UUID;
  * Created by ryanwiener on 9/27/17.
  */
 
-public class OnlineScreen implements Screen {
+public class OnlineGameScreen implements Screen {
 
     public static final short CATEGORY_SCENERY = 0x0004;
     private final float WORLD_WIDTH = 100;
@@ -132,8 +132,8 @@ public class OnlineScreen implements Screen {
                         Array<Actor> actors = stage.getActors();
                         boolean found = false;
                         for (int j = 0; j < actors.size; ++j) {
-                            if (actors.get(j) instanceof Character && ((Character) actors.get(j)).getController() instanceof OnlineController) {
-                                if (((OnlineController) ((Character) actors.get(j)).getController()).getUUID().equals(UUID.fromString(params.get("uuid" + i)))) {
+                            if (actors.get(j) instanceof Character && ((Character) actors.get(j)).getController() instanceof NetworkController) {
+                                if (((NetworkController) ((Character) actors.get(j)).getController()).getUUID().equals(UUID.fromString(params.get("uuid" + i)))) {
                                     ((Character) actors.get(j)).updateFromMap(params, i);
                                     found = true;
                                     break;
@@ -142,7 +142,7 @@ public class OnlineScreen implements Screen {
                         }
                         if (!found) {
                             ClientCharacter player = new ClientCharacter(world);
-                            OnlineController controller = new OnlineController(player, UUID.fromString(params.get("uuid" + i)));
+                            NetworkController controller = new NetworkController(player, UUID.fromString(params.get("uuid" + i)));
                             player.setPosition(player.getWidth(), 0);
                             stage.addActor(player);
                         }

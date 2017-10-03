@@ -11,7 +11,7 @@ import java.util.UUID;
  * Created by ryanl on 9/30/2017.
  */
 
-public class OnlinePlayerController extends OnlineController implements InputProcessor {
+public class OnlinePlayerController extends NetworkController implements InputProcessor {
 
     private PrintWriter out;
 
@@ -24,33 +24,43 @@ public class OnlinePlayerController extends OnlineController implements InputPro
     public boolean keyDown(int keycode) {
         switch (keycode) {
             case Input.Keys.SPACE:
+                player.jump();
                 out.println("1");
                 return true;
             case Input.Keys.UP:
+                player.jump();
                 out.println("1");
                 return true;
             case Input.Keys.RIGHT:
+                player.setIsMovingRight(true);
                 out.println("2");
                 return true;
             case Input.Keys.LEFT:
+                player.setIsMovingLeft(true);
                 out.println("4");
                 return true;
             case Input.Keys.DOWN:
+                player.setIsCrouching(true);
                 out.println("6");
                 return true;
             case Input.Keys.W:
+                player.jump();
                 out.println("1");
                 return true;
             case Input.Keys.A:
+                player.setIsMovingLeft(true);
                 out.println("4");
                 return true;
             case Input.Keys.D:
+                player.setIsMovingRight(true);
                 out.println("2");
                 return true;
             case Input.Keys.S:
+                player.setIsCrouching(true);
                 out.println("6");
                 return true;
             case Input.Keys.C:
+                player.jab();
                 out.println("8");
                 return true;
             default:
@@ -62,21 +72,27 @@ public class OnlinePlayerController extends OnlineController implements InputPro
     public boolean keyUp(int keycode) {
         switch (keycode) {
             case Input.Keys.RIGHT:
+                player.setIsMovingRight(false);
                 out.println("3");
                 return true;
             case Input.Keys.LEFT:
+                player.setIsMovingLeft(false);
                 out.println("5");
                 return true;
             case Input.Keys.DOWN:
+                player.setIsCrouching(false);
                 out.println("7");
                 return true;
             case Input.Keys.D:
+                player.setIsMovingRight(false);
                 out.println("3");
                 return true;
             case Input.Keys.A:
+                player.setIsMovingLeft(false);
                 out.println("5");
                 return true;
             case Input.Keys.S:
+                player.setIsCrouching(false);
                 out.println("7");
                 return true;
             default:

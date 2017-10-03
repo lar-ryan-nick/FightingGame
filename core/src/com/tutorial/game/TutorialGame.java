@@ -2,7 +2,6 @@ package com.tutorial.game;
 
 import com.badlogic.gdx.Game;
 import com.tutorial.game.screens.MainScreen;
-import com.tutorial.game.screens.OnlineScreen;
 
 public class TutorialGame extends Game {
 	

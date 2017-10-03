@@ -1,7 +1,6 @@
 package com.tutorial.game.characters;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.TextureData;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -17,8 +16,8 @@ import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.Timer;
 import com.tutorial.game.controllers.Controller;
-import com.tutorial.game.controllers.OnlineController;
-import com.tutorial.game.screens.GameScreen;
+import com.tutorial.game.controllers.NetworkController;
+import com.tutorial.game.screens.LocalGameScreen;
 
 import java.util.HashMap;
 
@@ -121,12 +120,12 @@ public class Character extends Actor {
 
     public void jump() {
         if (!isDead && !isInAir && currFlinchNum < 0) {
+            setTexture("img/character/character_jump_start.png");
             characterBody.applyForceToCenter(0, 100000f * characterBody.getMass(), true);
             isInAir = true;
             currCrouchNum = -1;
             crouchingTimer.stop();
             standingTimer.stop();
-            setTexture("img/character/character_jump_start.png");
         }
     }
 
@@ -299,13 +298,11 @@ public class Character extends Actor {
 
     protected void updateCharacterSize() {
         TextureData textureData = TextureData.Factory.loadFromFile(Gdx.files.internal(characterImagePath), true);
-        setSize(textureData.getWidth() * CHARACTER_SCALE, textureData.getHeight() * CHARACTER_SCALE);
         float widthDifference = 0;
         if (!isFacingRight) {
-            widthDifference = getWidth() - textureData.getWidth() * CHARACTER_SCALE;
+            widthDifference = textureData.getWidth() * CHARACTER_SCALE - getWidth();
         }
-        System.out.println("Width: " + getWidth());
-        System.out.println("New width: " + textureData.getWidth() * CHARACTER_SCALE);
+        setSize(textureData.getWidth() * CHARACTER_SCALE, textureData.getHeight() * CHARACTER_SCALE);
         textureData.disposePixmap();
         if (!characterBody.getWorld().isLocked()) {
             needsUpdate = false;
@@ -315,15 +312,15 @@ public class Character extends Actor {
             BodyDef box = new BodyDef();
             box.type = BodyDef.BodyType.DynamicBody;
             // make sure foot placement is constant for different animations
-            if (currPunchNum < 0 && (currWalkNum >= 0)) {
-             //   if (isFacingRight) {
+            if (currPunchNum >= 0) {
+                //   if (isFacingRight) {
              //       box.position.set(getX() + getWidth() / 2 + widthDifference, getY() + getHeight() / 2);
              //   } else {
-                    box.position.set(getX() + getWidth() / 2, getY() + getHeight() / 2);
+                box.position.set(getX() + getWidth() / 2 - widthDifference / 2, getY() + getHeight() / 2);
              //   }
             } else {
          //       if (!isFacingRight) {
-                    box.position.set(getX() + getWidth() / 2 + widthDifference, getY() + getHeight() / 2);
+                box.position.set(getX() + getWidth() / 2, getY() + getHeight() / 2);
             //    } else {
             //        box.position.set(getX() + getWidth() / 2, getY() + getHeight() / 2);
           //      }
@@ -371,7 +368,7 @@ public class Character extends Actor {
                     boxFixture.isSensor = true;
                 } else {
                     boxFixture.filter.categoryBits = CATEGORY_CHARACTER;
-                    boxFixture.filter.maskBits = CATEGORY_ARM | GameScreen.CATEGORY_SCENERY;
+                    boxFixture.filter.maskBits = CATEGORY_ARM | LocalGameScreen.CATEGORY_SCENERY;
                 }
                 Fixture fixture = characterBody.createFixture(boxFixture);
                 if (verticieJSON != null) {
@@ -500,16 +497,16 @@ public class Character extends Actor {
     @Override
     public String toString() {
         String uuid = "";
-        if (getController() instanceof OnlineController) {
-            uuid = "uuid=" + ((OnlineController) getController()).getUUID().toString() + "&";
+        if (getController() instanceof NetworkController) {
+            uuid = "uuid=" + ((NetworkController) getController()).getUUID().toString() + "&";
         }
         return uuid + "x=" + getX() + "&y=" + getY() + "&velX=" + characterBody.getLinearVelocity().x + "&velY=" + characterBody.getLinearVelocity().y + "&facingRight=" + isFacingRight + "&health=" + health + "&imageName=" + characterImagePath;
     }
 
     public String serialize(int i) {
         String uuid = "";
-        if (getController() instanceof OnlineController) {
-            uuid = "uuid" + i + "=" + ((OnlineController) getController()).getUUID().toString() + "&";
+        if (getController() instanceof NetworkController) {
+            uuid = "uuid" + i + "=" + ((NetworkController) getController()).getUUID().toString() + "&";
         }
         return uuid + "x" + i + "=" + getX() + "&y" + i + "=" + getY() + "&velX" + i + "=" + characterBody.getLinearVelocity().x + "&velY" + i + "=" + characterBody.getLinearVelocity().y + "&facingRight" + i + "=" + isFacingRight + "&health" + i + "=" + health + "&imageName" + i + "=" + characterImagePath;
     }
@@ -522,6 +519,7 @@ public class Character extends Actor {
             setFlip(!Boolean.parseBoolean(vals.get("facingRight" + index)), false);
             health = Integer.parseInt(vals.get("health" + index));
             setTexture(vals.get("imageName" + index));
+            updateCharacterSize();
         }
     }
 /*

@@ -1,8 +1,7 @@
 package com.tutorial.game.server;
 
 import com.tutorial.game.characters.Character;
-import com.tutorial.game.controllers.Controller;
-import com.tutorial.game.controllers.OnlineController;
+import com.tutorial.game.controllers.NetworkController;
 
 import java.util.UUID;
 
@@ -21,7 +20,7 @@ import java.util.UUID;
 8 = jab
  */
 
-public class ServerController extends OnlineController {
+public class ServerController extends NetworkController {
 
     public ServerController(Character character, UUID uuid) {
         super(character, uuid);

@@ -1,11 +1,9 @@
-package com.tutorial.game.screens;
+package com.tutorial.game.server;
 
+import com.badlogic.gdx.ApplicationAdapter;
+import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
@@ -19,59 +17,33 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Disposable;
 import com.tutorial.game.characters.Character;
-import com.tutorial.game.characters.ClientCharacter;
-import com.tutorial.game.controllers.PlayerController;
+
+import java.util.UUID;
 
 /**
- * Created by ryanl on 8/6/2017.
+ * Created by ryanl on 9/28/2017.
  */
 
-public class GameScreen implements Screen {
+public class ServerGame implements Disposable {
 
     public static final short CATEGORY_SCENERY = 0x0004;
     private final float WORLD_WIDTH = 100;
     private final float WORLD_HEIGHT = 100 * 9 / 16;
-    private int numEnemies;
     private World world;
-    private Box2DDebugRenderer renderer;
-    private OrthographicCamera camera;
-    private Stage stage;
-    private Image backgroundImage;
-    private Image floorImage;
-    private ClientCharacter player;
-    private Array<ClientCharacter> enemies;
+    private Array<Character> players;
+    private Array<ServerController> controllers;
 
-    public GameScreen() {
-        super();
-        numEnemies = 1;
-    }
-
-    public GameScreen(int enemies) {
-        super();
-        numEnemies = enemies;
-    }
-
-    @Override
-    public void show() {
+    ServerGame() {
         world = new World(new Vector2(0, -200f), true);
-        renderer = new Box2DDebugRenderer();
-        camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        //batch = new SpriteBatch();
-        stage = new Stage();
-        OrthographicCamera cam = (OrthographicCamera)stage.getCamera();
-        cam.zoom = WORLD_WIDTH / cam.viewportWidth;
-        camera.zoom = WORLD_WIDTH / cam.viewportWidth;
-        cam.position.x = WORLD_WIDTH / 2;
-        cam.position.y = WORLD_HEIGHT / 2;
-        camera.position.x = WORLD_WIDTH / 2;
-        camera.position.y = WORLD_HEIGHT / 2;
-        camera.update();
+        players = new Array<Character>();
+        controllers = new Array<ServerController>();
         BodyDef floor = new BodyDef();
         floor.type = BodyDef.BodyType.StaticBody;
         floor.position.set(0, 0);
         EdgeShape line = new EdgeShape();
-        line.set(0, 0, WORLD_WIDTH,  0);
+        line.set(0, 0, WORLD_WIDTH, 0);
         FixtureDef floorFixture = new FixtureDef();
         floorFixture.friction = 1f;
         floorFixture.shape = line;
@@ -94,26 +66,6 @@ public class GameScreen implements Screen {
         line.set(WORLD_WIDTH, 0, WORLD_WIDTH, WORLD_HEIGHT);
         world.createBody(rightWall).createFixture(wallFixture);
         line.dispose();
-        backgroundImage = new Image(new Texture("img/GameBackgroundImage.jpg"));
-        backgroundImage.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-        //stage.addActor(backgroundImage);
-        /*
-        floorImage = new Image(new Texture("img/GameFloorImage.jpg"));
-        floorImage.setBounds(0, 0, effectiveViewportWidth, 0);
-        stage.addActor(floorImage);
-        */
-        player = new ClientCharacter(world);
-        player.setPosition(player.getWidth(), 0);
-        stage.addActor(player);
-        PlayerController playerController = new PlayerController(player);
-        Gdx.input.setInputProcessor(playerController);
-        enemies = new Array<ClientCharacter>(numEnemies);
-        for (int i = 0; i < numEnemies; i++) {
-            ClientCharacter enemy = new ClientCharacter(world);
-            enemy.setPosition((float)((i + 1) * WORLD_WIDTH / (numEnemies + 1)), 0);
-            stage.addActor(enemy);
-            enemies.add(enemy);
-        }
         world.setContactListener(new ContactListener() {
             @Override
             public void beginContact(Contact contact) {
@@ -165,43 +117,40 @@ public class GameScreen implements Screen {
         });
     }
 
-    @Override
-    public void render(float delta) {
-        Gdx.gl.glClearColor(0, 0, 0, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        world.step(delta, 8, 3);
-        renderer.render(world, camera.combined);
-        stage.act(delta);
-        stage.draw();
+    public void addPlayer(UUID id) {
+        Character player = new Character(world);
+        player.setPosition(player.getWidth(), 0);
+        players.add(player);
+        ServerController controller = new ServerController(player, id);
+        controllers.add(controller);
     }
 
-    @Override
-    public void resize(int width, int height) {
-
+    public void sendInput(String input, UUID uuid) {
+        for (int i = 0; i < controllers.size; ++i) {
+            if (controllers.get(i).getUUID().equals(uuid)) {
+                controllers.get(i).processInput(Integer.parseInt(input));
+            }
+        }
     }
 
-    @Override
-    public void pause() {
-
-    }
-
-    @Override
-    public void resume() {
-
-    }
-
-    @Override
-    public void hide() {
-        //dispose();
+    public void render() {
+        world.step(1 / 60f, 8, 3);
+        for (int i = 0; i < players.size; ++i) {
+            players.get(i).act(Gdx.graphics.getDeltaTime());
+        }
     }
 
     @Override
     public void dispose() {
-        world.dispose();
-        player.dispose();
-        for (ClientCharacter enemy : enemies) {
-            enemy.dispose();
+
+    }
+
+    @Override
+    public String toString() {
+        String serialization = "numPlayers=" + players.size;
+        for (int i = 0; i < players.size; ++i) {
+            serialization += "&" + players.get(i).serialize(i);
         }
-        renderer.dispose();
+        return serialization;
     }
 }

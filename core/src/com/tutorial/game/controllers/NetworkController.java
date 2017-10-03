@@ -22,11 +22,11 @@ import java.util.UUID;
 8 = jab
  */
 
-public class OnlineController extends Controller {
+public class NetworkController extends Controller {
 
     private UUID id;
 
-    public OnlineController(Character character, UUID uuid) {
+    public NetworkController(Character character, UUID uuid) {
         super(character);
         id = uuid;
     }

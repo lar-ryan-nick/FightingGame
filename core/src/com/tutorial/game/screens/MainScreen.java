@@ -7,8 +7,6 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
@@ -56,8 +54,8 @@ public class MainScreen implements Screen {
         startLocalGame.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                GameScreen gameScreen = new GameScreen();
-                ((Game) Gdx.app.getApplicationListener()).setScreen(gameScreen);
+                LocalGameScreen localGameScreen = new LocalGameScreen();
+                ((Game) Gdx.app.getApplicationListener()).setScreen(localGameScreen);
             }
         });
         stage.addActor(startLocalGame);
@@ -66,8 +64,8 @@ public class MainScreen implements Screen {
         startOnlineGame.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                OnlineScreen onlineScreen = new OnlineScreen();
-                ((Game) Gdx.app.getApplicationListener()).setScreen(onlineScreen);
+                OnlineGameScreen onlineGameScreen = new OnlineGameScreen();
+                ((Game) Gdx.app.getApplicationListener()).setScreen(onlineGameScreen);
             }
         });
         stage.addActor(startOnlineGame);
