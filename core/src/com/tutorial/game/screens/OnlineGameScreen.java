@@ -26,15 +26,16 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.UUID;
 
+import static com.tutorial.game.constants.Constants.CATEGORY_SCENERY;
+import static com.tutorial.game.constants.Constants.WORLD_HEIGHT;
+import static com.tutorial.game.constants.Constants.WORLD_WIDTH;
+
 /**
  * Created by ryanwiener on 9/27/17.
  */
 
 public class OnlineGameScreen implements Screen {
 
-    public static final short CATEGORY_SCENERY = 0x0004;
-    private final float WORLD_WIDTH = 100;
-    private final float WORLD_HEIGHT = 100 * 9 / 16;
     private Socket socket;
     private PrintWriter out;
     private BufferedReader in;

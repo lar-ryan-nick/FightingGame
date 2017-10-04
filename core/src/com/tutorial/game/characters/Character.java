@@ -10,16 +10,22 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.Timer;
+import com.tutorial.game.controllers.AIController;
 import com.tutorial.game.controllers.Controller;
 import com.tutorial.game.controllers.NetworkController;
 import com.tutorial.game.screens.LocalGameScreen;
 
 import java.util.HashMap;
+
+import static com.tutorial.game.constants.Constants.CATEGORY_ARM;
+import static com.tutorial.game.constants.Constants.CATEGORY_CHARACTER;
+import static com.tutorial.game.constants.Constants.CATEGORY_SCENERY;
+import static com.tutorial.game.constants.Constants.CHARACTER_SCALE;
+import static com.tutorial.game.constants.Constants.WORLD_WIDTH;
 
 /**
  * Created by ryanl on 8/6/2017.
@@ -27,11 +33,6 @@ import java.util.HashMap;
 
 public class Character extends Actor {
 
-    public static final short CATEGORY_CHARACTER = 0x0001;
-    public static final short CATEGORY_ARM = 0x0002;
-    protected final float WORLD_WIDTH = 100;
-    protected final float WORLD_HEIGHT = 100 * 9 / 16;
-    protected final float CHARACTER_SCALE = 2f / 17;
     protected String characterImagePath;
     private Body characterBody;
     protected int health;
@@ -45,6 +46,7 @@ public class Character extends Actor {
     private int currCrouchNum;
     private int currPunchNum;
     private int currFlinchNum;
+    private int coolDown;
     private Timer walkingTimer;
     private Timer crouchingTimer;
     private Timer standingTimer;
@@ -68,6 +70,7 @@ public class Character extends Actor {
         currCrouchNum = -1;
         currPunchNum = -1;
         currFlinchNum = -1;
+        coolDown = 0;
         walkingTimer = new Timer();
         walkingTimer.scheduleTask(new Timer.Task() {
             @Override
@@ -130,7 +133,7 @@ public class Character extends Actor {
     }
 
     public void jab() {
-        if (!isDead && currPunchNum < 0 && currFlinchNum < 0) {
+        if (coolDown <= 0 && !isDead && currPunchNum < 0 && currFlinchNum < 0) {
             currPunchNum = 0;
             punchingTimer.start();
         }
@@ -247,6 +250,7 @@ public class Character extends Actor {
                 } else {
                     setTexture("img/character/character_idle.png");
                 }
+                coolDown = 15;
                 currPunchNum = -1;
                 punchingTimer.stop();
             } else if (currPunchNum >= 0) {
@@ -368,7 +372,7 @@ public class Character extends Actor {
                     boxFixture.isSensor = true;
                 } else {
                     boxFixture.filter.categoryBits = CATEGORY_CHARACTER;
-                    boxFixture.filter.maskBits = CATEGORY_ARM | LocalGameScreen.CATEGORY_SCENERY;
+                    boxFixture.filter.maskBits = CATEGORY_ARM | CATEGORY_SCENERY;
                 }
                 Fixture fixture = characterBody.createFixture(boxFixture);
                 if (verticieJSON != null) {
@@ -386,50 +390,13 @@ public class Character extends Actor {
     @Override
     public void act(float delta) {
         if (!isDead) {
-            float xVal = 0, yVal = 0;
-            // If not current player, find and attack them
-            if (controller == null) {
-                World world = characterBody.getWorld();
-                Array<Body> bodies = new Array<Body>(world.getBodyCount());
-                world.getBodies(bodies);
-                for (Body body : bodies) {
-                    if (body.getUserData() instanceof Character) {
-                        Character player = ((Character) body.getUserData());
-                        if (controller != null) {
-                            if (!player.isDead) {
-                                if (player.getX() > getX()) {
-                                    setFlip(false, false);
-                                    if (player.getX() - getX() < 16 * CHARACTER_SCALE + getWidth() && Math.abs(player.getY() - getY()) <= getHeight()) {
-                                        jab();
-                                        setIsMovingRight(false);
-                                    } else {
-                                        setIsMovingRight(true);
-                                    }
-                                } else {
-                                    setFlip(true, false);
-                                    if (this.getX() - player.getX() < 16 * CHARACTER_SCALE + player.getWidth() && Math.abs(player.getY() - getY()) <= getHeight()) {
-                                        jab();
-                                        setIsMovingLeft(false);
-                                    } else {
-                                        setIsMovingLeft(true);
-                                    }
-                                }
-                                if (player.getY() > getY() + getHeight() && body.getLinearVelocity().y > 0) {
-                                    // because jump force will be overriden by act before it has a chance to do anything
-                                    if (!isInAir) {
-                                        yVal = 1000f * characterBody.getMass();
-                                    }
-                                    jump();
-                                }
-                            } else {
-                                setIsMovingRight(false);
-                                setIsMovingLeft(false);
-                            }
-                            break;
-                        }
-                    }
-                }
+            if (needsUpdate) {
+                updateCharacterSize();
             }
+            if (coolDown > 0) {
+                --coolDown;
+            }
+            float xVal = 0, yVal = 0;
             if (currCrouchNum < 0 && currPunchNum < 0 && currFlinchNum < 0) {
                 if (isMovingLeft) {
                     xVal = -5000 * characterBody.getMass();
@@ -459,9 +426,9 @@ public class Character extends Actor {
                 }
             }
             characterBody.applyForceToCenter(xVal, yVal, true);
-        }
-        if (needsUpdate) {
-            updateCharacterSize();
+            if (controller instanceof AIController) {
+                ((AIController) controller).act();
+            }
         }
         super.setPosition(characterBody.getPosition().x - getWidth() / 2, characterBody.getPosition().y - getHeight() / 2);
     }
@@ -553,5 +520,29 @@ public class Character extends Actor {
             punchingTimer.stop();
             flinchTimer.stop();
         }
+    }
+
+    public boolean getIsDead() {
+        return isDead;
+    }
+
+    public Body getCharacterBody() {
+        return characterBody;
+    }
+
+    public boolean getIsInAir() {
+        return isInAir;
+    }
+
+    public boolean getIsCrouching() {
+        return currCrouchNum >= 0;
+    }
+
+    public boolean getIsPunching() {
+        return currPunchNum >= 0;
+    }
+
+    public boolean getIsFlinching() {
+        return currFlinchNum >= 0;
     }
 }

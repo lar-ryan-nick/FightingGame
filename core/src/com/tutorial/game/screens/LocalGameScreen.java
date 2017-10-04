@@ -21,7 +21,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.Array;
 import com.tutorial.game.characters.Character;
 import com.tutorial.game.characters.ClientCharacter;
+import com.tutorial.game.controllers.AIController;
 import com.tutorial.game.controllers.PlayerController;
+
+import static com.tutorial.game.constants.Constants.CATEGORY_SCENERY;
+import static com.tutorial.game.constants.Constants.WORLD_HEIGHT;
+import static com.tutorial.game.constants.Constants.WORLD_WIDTH;
 
 /**
  * Created by ryanl on 8/6/2017.
@@ -29,9 +34,6 @@ import com.tutorial.game.controllers.PlayerController;
 
 public class LocalGameScreen implements Screen {
 
-    public static final short CATEGORY_SCENERY = 0x0004;
-    private final float WORLD_WIDTH = 100;
-    private final float WORLD_HEIGHT = 100 * 9 / 16;
     private int numEnemies;
     private World world;
     private Box2DDebugRenderer renderer;
@@ -110,6 +112,7 @@ public class LocalGameScreen implements Screen {
         enemies = new Array<ClientCharacter>(numEnemies);
         for (int i = 0; i < numEnemies; i++) {
             ClientCharacter enemy = new ClientCharacter(world);
+            AIController enemyController = new AIController(enemy);
             enemy.setPosition((float)((i + 1) * WORLD_WIDTH / (numEnemies + 1)), 0);
             stage.addActor(enemy);
             enemies.add(enemy);

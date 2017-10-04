@@ -6,6 +6,8 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Disposable;
 
+import static com.tutorial.game.constants.Constants.CHARACTER_SCALE;
+
 /**
  * Created by ryanwiener on 9/29/17.
  */

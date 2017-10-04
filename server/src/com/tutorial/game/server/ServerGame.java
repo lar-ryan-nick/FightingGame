@@ -22,15 +22,16 @@ import com.tutorial.game.characters.Character;
 
 import java.util.UUID;
 
+import static com.tutorial.game.constants.Constants.CATEGORY_SCENERY;
+import static com.tutorial.game.constants.Constants.WORLD_HEIGHT;
+import static com.tutorial.game.constants.Constants.WORLD_WIDTH;
+
 /**
  * Created by ryanl on 9/28/2017.
  */
 
 public class ServerGame implements Disposable {
 
-    public static final short CATEGORY_SCENERY = 0x0004;
-    private final float WORLD_WIDTH = 100;
-    private final float WORLD_HEIGHT = 100 * 9 / 16;
     private World world;
     private Array<Character> players;
     private Array<ServerController> controllers;
