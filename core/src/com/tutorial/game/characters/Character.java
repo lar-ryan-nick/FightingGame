@@ -250,7 +250,7 @@ public class Character extends Actor {
                 } else {
                     setTexture("img/character/character_idle.png");
                 }
-                coolDown = 15;
+                coolDown = 20;
                 currPunchNum = -1;
                 punchingTimer.stop();
             } else if (currPunchNum >= 0) {
@@ -389,13 +389,13 @@ public class Character extends Actor {
 
     @Override
     public void act(float delta) {
+        if (needsUpdate) {
+            updateCharacterSize();
+        }
+        if (coolDown > 0) {
+            --coolDown;
+        }
         if (!isDead) {
-            if (needsUpdate) {
-                updateCharacterSize();
-            }
-            if (coolDown > 0) {
-                --coolDown;
-            }
             float xVal = 0, yVal = 0;
             if (currCrouchNum < 0 && currPunchNum < 0 && currFlinchNum < 0) {
                 if (isMovingLeft) {
@@ -514,6 +514,7 @@ public class Character extends Actor {
         if (health <= 0) {
             health = 0;
             isDead = true;
+            setTexture("img/character/character_ko.png");
             walkingTimer.stop();
             crouchingTimer.stop();
             standingTimer.stop();

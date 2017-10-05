@@ -51,12 +51,4 @@ public class ClientCharacter extends Character implements Disposable {
         characterImage.getTexture().dispose();
         healthBar.getTexture().dispose();
     }
-
-    @Override
-    public void changeHealth(int amount) {
-        super.changeHealth(amount);
-        if (health <= 0) {
-            setTexture("img/character/character_ko.png");
-        }
-    }
 }
