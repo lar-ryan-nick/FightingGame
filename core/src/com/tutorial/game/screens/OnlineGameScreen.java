@@ -1,5 +1,6 @@
 package com.tutorial.game.screens;
 
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
@@ -126,7 +127,12 @@ public class OnlineGameScreen implements Screen {
                 line = in.readLine();
                 Gdx.app.log("Received", line);
             }
+            Gdx.app.log("Using", line);
             if (line != null) {
+                if (line.equals("Disconnected")) {
+                    ((Game) Gdx.app.getApplicationListener()).setScreen(new MainScreen());
+                    this.dispose();
+                }
                 HashMap<String, String> params = parseString(line);
                 if (params != null) {
                     for (int i = 0; i < Integer.parseInt(params.get("numPlayers")); ++i) {

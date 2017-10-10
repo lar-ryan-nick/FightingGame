@@ -35,8 +35,10 @@ public class ServerGame implements Disposable {
     private World world;
     private Array<Character> players;
     private Array<ServerController> controllers;
+    private boolean isDisconnected;
 
     ServerGame() {
+        isDisconnected = false;
         world = new World(new Vector2(0, -200f), true);
         players = new Array<Character>();
         controllers = new Array<ServerController>();
@@ -141,6 +143,18 @@ public class ServerGame implements Disposable {
         }
     }
 
+    public boolean isFull() {
+        return players.size >= 2;
+    }
+
+    public void disconnect() {
+        isDisconnected = true;
+    }
+
+    public boolean getIsDisconnected() {
+        return isDisconnected;
+    }
+
     @Override
     public void dispose() {
 
@@ -148,6 +162,9 @@ public class ServerGame implements Disposable {
 
     @Override
     public String toString() {
+        if (isDisconnected) {
+            return "Disconnected";
+        }
         String serialization = "numPlayers=" + players.size;
         for (int i = 0; i < players.size; ++i) {
             serialization += "&" + players.get(i).serialize(i);

@@ -10,14 +10,14 @@ import com.badlogic.gdx.utils.Array;
 public class ServerApplication implements ApplicationListener {
 
     private Server server;
-    private ServerGame serverGame;
+    //private ServerGame serverGame;
 
     @Override
     public void create() {
         server = new Server();
         Thread serverThread = new Thread(server);
         serverThread.start();
-        serverGame = new ServerGame();
+        //serverGame = new ServerGame();
     }
 
     @Override
@@ -27,14 +27,15 @@ public class ServerApplication implements ApplicationListener {
 
     @Override
     public void render() {
-        serverGame.render();
-        Array<Connection> connections = server.getConnections();
-        synchronized (connections) {
-            for (int i = 0; i < connections.size; ++i) {
-                if (connections.get(i).getServerGame() == null) {
-                    connections.get(i).setServerGame(serverGame);
+        //serverGame.render();
+        Array<ServerGame> serverGames = server.getServerGames();
+        synchronized (serverGames) {
+            for (int i = 0; i < serverGames.size; ++i) {
+                if (serverGames.get(i).getIsDisconnected()) {
+                    serverGames.removeIndex(i);
+                    --i;
                 } else {
-                    //connections.get(i).getServerGame().render();
+                    serverGames.get(i).render();
                 }
             }
         }

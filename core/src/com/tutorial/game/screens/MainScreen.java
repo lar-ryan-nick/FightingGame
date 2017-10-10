@@ -56,6 +56,7 @@ public class MainScreen implements Screen {
             public void clicked(InputEvent event, float x, float y) {
                 LocalGameScreen localGameScreen = new LocalGameScreen();
                 ((Game) Gdx.app.getApplicationListener()).setScreen(localGameScreen);
+                dispose();
             }
         });
         stage.addActor(startLocalGame);
@@ -66,6 +67,7 @@ public class MainScreen implements Screen {
             public void clicked(InputEvent event, float x, float y) {
                 OnlineGameScreen onlineGameScreen = new OnlineGameScreen();
                 ((Game) Gdx.app.getApplicationListener()).setScreen(onlineGameScreen);
+                dispose();
             }
         });
         stage.addActor(startOnlineGame);

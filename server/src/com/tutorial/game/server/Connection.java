@@ -32,10 +32,11 @@ public class Connection {
 			public void run() {
 				while(true) {
 					try {
-						String line = null;
-						while ((line = in.readLine()) != null) {
+						String line = in.readLine();
+						if (line != null) {
 							Gdx.app.log("Received", line);
 							if (line.equals("disconnecting")) {
+								serverGame.disconnect();
 								Thread.currentThread().interrupt();
 								return;
 							} else {
@@ -56,6 +57,18 @@ public class Connection {
 			public void run() {
 				if (serverGame != null) {
 					out.println(serverGame);
+					if (serverGame.getIsDisconnected()) {
+						try {
+							in.close();
+							out.close();
+							client.close();
+						} catch (IOException e) {
+							System.err.println("Closing connection failed");
+							System.exit(1);
+						}
+						Thread.currentThread().interrupt();
+						return;
+					}
 				}
 			}
 		}, 0, 1 / 100f);
