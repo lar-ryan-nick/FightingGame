@@ -250,7 +250,7 @@ public class Character extends Actor {
                 } else {
                     setTexture("img/character/character_idle.png");
                 }
-                coolDown = 20;
+                coolDown = 15;
                 currPunchNum = -1;
                 punchingTimer.stop();
             } else if (currPunchNum >= 0) {

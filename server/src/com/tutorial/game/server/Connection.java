@@ -1,10 +1,14 @@
 package com.tutorial.game.server;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Timer;
+import com.tutorial.game.characters.Character;
 
 import java.net.*;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.UUID;
 
 public class Connection {
@@ -32,9 +36,9 @@ public class Connection {
 			public void run() {
 				while(true) {
 					try {
-						String line = in.readLine();
-						if (line != null) {
-							Gdx.app.log("Received", line);
+						String line = null;
+						while ((line = in.readLine()) != null) {
+							//Gdx.app.log("Received", line);
 							if (line.equals("disconnecting")) {
 								serverGame.disconnect();
 								Thread.currentThread().interrupt();

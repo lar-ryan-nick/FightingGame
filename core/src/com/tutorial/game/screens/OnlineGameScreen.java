@@ -18,6 +18,9 @@ import com.tutorial.game.characters.Character;
 import com.tutorial.game.characters.ClientCharacter;
 import com.tutorial.game.controllers.NetworkController;
 import com.tutorial.game.controllers.OnlinePlayerController;
+import com.tutorial.game.maps.DefaultMap;
+import com.tutorial.game.maps.Map;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -40,10 +43,7 @@ public class OnlineGameScreen implements Screen {
     private Socket socket;
     private PrintWriter out;
     private BufferedReader in;
-    private World world;
-    private Box2DDebugRenderer renderer;
-    private OrthographicCamera camera;
-    private Stage stage;
+    private Map map;
 
     public void listenServer() {
         try{
@@ -62,47 +62,7 @@ public class OnlineGameScreen implements Screen {
     @Override
     public void show() {
         listenServer();
-        world = new World(new Vector2(0, -200f), true);
-        renderer = new Box2DDebugRenderer();
-        camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        //batch = new SpriteBatch();
-        stage = new Stage();
-        Gdx.input.setInputProcessor(stage);
-        OrthographicCamera cam = (OrthographicCamera)stage.getCamera();
-        cam.zoom = WORLD_WIDTH / cam.viewportWidth;
-        camera.zoom = WORLD_WIDTH / cam.viewportWidth;
-        cam.position.x = WORLD_WIDTH / 2;
-        cam.position.y = WORLD_HEIGHT / 2;
-        camera.position.x = WORLD_WIDTH / 2;
-        camera.position.y = WORLD_HEIGHT / 2;
-        camera.update();
-        BodyDef floor = new BodyDef();
-        floor.type = BodyDef.BodyType.StaticBody;
-        floor.position.set(0, 0);
-        EdgeShape line = new EdgeShape();
-        line.set(0, 0, WORLD_WIDTH,  0);
-        FixtureDef floorFixture = new FixtureDef();
-        floorFixture.friction = 1f;
-        floorFixture.shape = line;
-        floorFixture.filter.categoryBits = CATEGORY_SCENERY;
-        floorFixture.filter.maskBits = -1;
-        world.createBody(floor).createFixture(floorFixture);
-        BodyDef leftWall = new BodyDef();
-        leftWall.type = BodyDef.BodyType.StaticBody;
-        leftWall.position.set(0, 0);
-        line.set(0, 0, 0, WORLD_HEIGHT);
-        FixtureDef wallFixture = new FixtureDef();
-        wallFixture.friction = 0f;
-        wallFixture.shape = line;
-        wallFixture.filter.categoryBits = CATEGORY_SCENERY;
-        wallFixture.filter.maskBits = -1;
-        world.createBody(leftWall).createFixture(wallFixture);
-        BodyDef rightWall = new BodyDef();
-        rightWall.type = BodyDef.BodyType.StaticBody;
-        rightWall.position.set(0, 0);
-        line.set(WORLD_WIDTH, 0, WORLD_WIDTH, WORLD_HEIGHT);
-        world.createBody(rightWall).createFixture(wallFixture);
-        line.dispose();
+        map = new DefaultMap();
         String id = null;
         try {
             id = in.readLine();
@@ -110,9 +70,9 @@ public class OnlineGameScreen implements Screen {
             System.err.println("Couldn't read id");
             System.exit(-1);
         }
-        ClientCharacter player = new ClientCharacter(world);
+        ClientCharacter player = new ClientCharacter(map.getWorld());
         player.setPosition(player.getWidth(), 0);
-        stage.addActor(player);
+        map.addActor(player);
         OnlinePlayerController controller = new OnlinePlayerController(player, out, UUID.fromString(id));
         Gdx.input.setInputProcessor(controller);
     }
@@ -125,9 +85,9 @@ public class OnlineGameScreen implements Screen {
             String line = null;
             while (in.ready()) {
                 line = in.readLine();
-                Gdx.app.log("Received", line);
+                //Gdx.app.log("Received", line);
             }
-            Gdx.app.log("Using", line);
+            //Gdx.app.log("Using", line);
             if (line != null) {
                 if (line.equals("Disconnected")) {
                     ((Game) Gdx.app.getApplicationListener()).setScreen(new MainScreen());
@@ -136,7 +96,7 @@ public class OnlineGameScreen implements Screen {
                 HashMap<String, String> params = parseString(line);
                 if (params != null) {
                     for (int i = 0; i < Integer.parseInt(params.get("numPlayers")); ++i) {
-                        Array<Actor> actors = stage.getActors();
+                        Array<Actor> actors = map.getActors();
                         boolean found = false;
                         for (int j = 0; j < actors.size; ++j) {
                             if (actors.get(j) instanceof Character && ((Character) actors.get(j)).getController() instanceof NetworkController) {
@@ -148,10 +108,10 @@ public class OnlineGameScreen implements Screen {
                             }
                         }
                         if (!found) {
-                            ClientCharacter player = new ClientCharacter(world);
+                            ClientCharacter player = new ClientCharacter(map.getWorld());
                             NetworkController controller = new NetworkController(player, UUID.fromString(params.get("uuid" + i)));
                             player.setPosition(player.getWidth(), 0);
-                            stage.addActor(player);
+                            map.addActor(player);
                         }
                     }
                 }
@@ -160,10 +120,8 @@ public class OnlineGameScreen implements Screen {
             System.err.println("Can't read");
             System.exit(1);
         }
-        world.step(1 / 60f, 8, 3);
-        renderer.render(world, camera.combined);
-        stage.act(delta);
-        stage.draw();
+        map.act(delta);
+        map.draw();
     }
 
     public HashMap<String, String> parseString(String s) {
@@ -203,6 +161,7 @@ public class OnlineGameScreen implements Screen {
 
     @Override
     public void dispose() {
+        map.dispose();
         try {
             out.println("disconnecting");
             socket.close();

@@ -35,7 +35,7 @@ public class ServerApplication implements ApplicationListener {
                     serverGames.removeIndex(i);
                     --i;
                 } else {
-                    serverGames.get(i).render();
+                    serverGames.get(i).act();
                 }
             }
         }
