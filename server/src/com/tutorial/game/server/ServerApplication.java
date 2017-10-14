@@ -1,6 +1,7 @@
 package com.tutorial.game.server;
 
 import com.badlogic.gdx.ApplicationListener;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.Array;
 
 /**
@@ -35,7 +36,7 @@ public class ServerApplication implements ApplicationListener {
                     serverGames.removeIndex(i);
                     --i;
                 } else {
-                    serverGames.get(i).act();
+                    serverGames.get(i).act(Gdx.graphics.getDeltaTime());
                 }
             }
         }

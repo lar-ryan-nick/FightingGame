@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
@@ -44,6 +45,7 @@ public class OnlineGameScreen implements Screen {
     private PrintWriter out;
     private BufferedReader in;
     private Map map;
+    private SpriteBatch batch;
 
     public void listenServer() {
         try{
@@ -63,6 +65,7 @@ public class OnlineGameScreen implements Screen {
     public void show() {
         listenServer();
         map = new DefaultMap();
+        batch = new SpriteBatch();
         String id = null;
         try {
             id = in.readLine();
@@ -72,7 +75,7 @@ public class OnlineGameScreen implements Screen {
         }
         ClientCharacter player = new ClientCharacter(map.getWorld());
         player.setPosition(player.getWidth(), 0);
-        map.addActor(player);
+        map.addCharacter(player);
         OnlinePlayerController controller = new OnlinePlayerController(player, out, UUID.fromString(id));
         Gdx.input.setInputProcessor(controller);
     }
@@ -96,12 +99,12 @@ public class OnlineGameScreen implements Screen {
                 HashMap<String, String> params = parseString(line);
                 if (params != null) {
                     for (int i = 0; i < Integer.parseInt(params.get("numPlayers")); ++i) {
-                        Array<Actor> actors = map.getActors();
+                        Array<Character> characters = map.getCharacters();
                         boolean found = false;
-                        for (int j = 0; j < actors.size; ++j) {
-                            if (actors.get(j) instanceof Character && ((Character) actors.get(j)).getController() instanceof NetworkController) {
-                                if (((NetworkController) ((Character) actors.get(j)).getController()).getUUID().equals(UUID.fromString(params.get("uuid" + i)))) {
-                                    ((Character) actors.get(j)).updateFromMap(params, i);
+                        for (int j = 0; j < characters.size; ++j) {
+                            if (characters.get(j).getController() instanceof NetworkController) {
+                                if (((NetworkController) (characters.get(j).getController())).getUUID().equals(UUID.fromString(params.get("uuid" + i)))) {
+                                    characters.get(j).updateFromMap(params, i);
                                     found = true;
                                     break;
                                 }
@@ -111,7 +114,7 @@ public class OnlineGameScreen implements Screen {
                             ClientCharacter player = new ClientCharacter(map.getWorld());
                             NetworkController controller = new NetworkController(player, UUID.fromString(params.get("uuid" + i)));
                             player.setPosition(player.getWidth(), 0);
-                            map.addActor(player);
+                            map.addCharacter(player);
                         }
                     }
                 }
@@ -121,7 +124,10 @@ public class OnlineGameScreen implements Screen {
             System.exit(1);
         }
         map.act(delta);
-        map.draw();
+        batch.setProjectionMatrix(map.getCamera().combined);
+        batch.begin();
+        map.draw(batch);
+        batch.end();
     }
 
     public HashMap<String, String> parseString(String s) {

@@ -5,6 +5,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.BodyDef;
@@ -39,6 +40,7 @@ public class LocalGameScreen implements Screen {
 
     private Map map;
     private int numEnemies;
+    private SpriteBatch batch;
     /*
     private ClientCharacter player;
     private Array<ClientCharacter> enemies;
@@ -57,9 +59,10 @@ public class LocalGameScreen implements Screen {
     @Override
     public void show() {
         map = new DefaultMap();
+        batch = new SpriteBatch();
         ClientCharacter player = new ClientCharacter(map.getWorld());
         player.setPosition(player.getWidth(), 0);
-        map.addActor(player);
+        map.addCharacter(player);
         PlayerController playerController = new PlayerController(player);
         Gdx.input.setInputProcessor(playerController);
         //enemies = new Array<ClientCharacter>(numEnemies);
@@ -67,7 +70,7 @@ public class LocalGameScreen implements Screen {
             ClientCharacter enemy = new ClientCharacter(map.getWorld());
             AIController enemyController = new AIController(enemy);
             enemy.setPosition((float)((i + 1) * WORLD_WIDTH / (numEnemies + 1)), 0);
-            map.addActor(enemy);
+            map.addCharacter(enemy);
             //enemies.add(enemy);
         }
     }
@@ -77,7 +80,10 @@ public class LocalGameScreen implements Screen {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         map.act(delta);
-        map.draw();
+        batch.setProjectionMatrix(map.getCamera().combined);
+        batch.begin();
+        map.draw(batch);
+        batch.end();
     }
 
     @Override

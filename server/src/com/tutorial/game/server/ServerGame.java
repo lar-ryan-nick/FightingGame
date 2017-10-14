@@ -52,16 +52,16 @@ public class ServerGame implements Disposable {
         Character player = new Character(map.getWorld());
         player.setPosition(player.getWidth(), 0);
         //players.add(player);
-        map.addActor(player);
+        map.addCharacter(player);
         ServerController controller = new ServerController(player, id);
         //controllers.add(controller);
     }
 
     public void sendInput(String input, UUID uuid) {
-        Array<Actor> actors = map.getActors();
-        for (int i = 0; i < actors.size; ++i) {
-            if (actors.get(i) instanceof Character && ((Character) actors.get(i)).getController() instanceof ServerController) {
-                ServerController controller = (ServerController) ((Character) actors.get(i)).getController();
+        Array<Character> characters = map.getCharacters();
+        for (int i = 0; i < characters.size; ++i) {
+            if (characters.get(i).getController() instanceof ServerController) {
+                ServerController controller = (ServerController) characters.get(i).getController();
                 if (controller.getUUID().equals(uuid)) {
                     controller.processInput(Integer.parseInt(input));
                 }
@@ -69,22 +69,12 @@ public class ServerGame implements Disposable {
         }
     }
 
-    public void act() {
-        map.act();
+    public void act(float delta) {
+        map.act(delta);
     }
 
     public boolean isFull() {
-        int count = 0;
-        Array<Actor> actors = map.getActors();
-        for (int i = 0; i < actors.size; ++i) {
-            if (actors.get(i) instanceof Character) {
-                count++;
-                if (count >= 2) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return map.getCharacters().size >= 2;
     }
 
     public void disconnect() {
@@ -105,17 +95,11 @@ public class ServerGame implements Disposable {
         if (isDisconnected) {
             return "Disconnected";
         }
-        String serialization = "";
-        int count = 0;
-        Array<Actor> actors = map.getActors();
-        for (int i = 0; i < actors.size; ++i) {
-            if (actors.get(i) instanceof Character) {
-                count++;
-                Character character = ((Character) actors.get(i));
-                serialization += "&" + character.serialize(i);
-            }
+        Array<Character> characters = map.getCharacters();
+        String serialization = "numPlayers=" + characters.size;
+        for (int i = 0; i < characters.size; ++i) {
+            serialization += "&" + characters.get(i).serialize(i);
         }
-        serialization = "numPlayers=" + count + serialization;
         return serialization;
     }
 }
