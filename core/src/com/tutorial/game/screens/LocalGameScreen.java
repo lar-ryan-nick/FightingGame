@@ -60,6 +60,7 @@ public class LocalGameScreen implements Screen {
     public void show() {
         map = new DefaultMap();
         batch = new SpriteBatch();
+        batch.setProjectionMatrix(map.getCamera().combined);
         ClientCharacter player = new ClientCharacter(map.getWorld());
         player.setPosition(player.getWidth(), 0);
         map.addCharacter(player);
@@ -80,7 +81,6 @@ public class LocalGameScreen implements Screen {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         map.act(delta);
-        batch.setProjectionMatrix(map.getCamera().combined);
         batch.begin();
         map.draw(batch);
         batch.end();
@@ -109,5 +109,6 @@ public class LocalGameScreen implements Screen {
     @Override
     public void dispose() {
         map.dispose();
+        batch.dispose();
     }
 }

@@ -40,14 +40,10 @@ public class Server implements Runnable, Disposable {
 				connection = new Connection(serverSocket.accept());
 				boolean added = false;
 				synchronized (serverGames) {
-					for (int i = 0; i < serverGames.size; ++i) {
-						if (!serverGames.get(i).isFull()) {
-							connection.setServerGame(serverGames.get(i));
-							added = true;
-							break;
-						}
-					}
-					if (!added) {
+					if (serverGames.size > 0 && !serverGames.get(serverGames.size - 1).isFull()) {
+						connection.setServerGame(serverGames.get(serverGames.size - 1));
+						break;
+					} else {
 						serverGames.add(new ServerGame());
 						connection.setServerGame(serverGames.get(serverGames.size - 1));
 					}
@@ -65,6 +61,11 @@ public class Server implements Runnable, Disposable {
 
 	@Override
 	public void dispose() {
+		synchronized (serverGames) {
+			for (int i = 0; i < serverGames.size; ++i) {
+				serverGames.get(i).dispose();
+			}
+		}
 		try {
 			serverSocket.close();
 		} catch (IOException e) {

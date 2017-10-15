@@ -1,6 +1,6 @@
 [
     {
-        "outputFile": "/Users/ryanwiener/Documents/Programs/java/LibGDX Games/FightingGame/android/build/intermediates/incremental/mergeDebugResources/merged.dir/values/values.xml",
+        "outputFile": "C:\\Users\\ryanwiener\\Documents\\Programs\\java\\LibGDX Games\\FightingGame\\android\\build\\intermediates\\incremental\\mergeDebugResources\\merged.dir\\values\\values.xml",
         "map": [
             {
                 "to": {
@@ -11,7 +11,7 @@
                     "endOffset": 101
                 },
                 "from": {
-                    "file": "/Users/ryanwiener/Documents/Programs/java/LibGDX Games/FightingGame/android/res/values/strings.xml",
+                    "file": "C:\\Users\\ryanwiener\\Documents\\Programs\\java\\LibGDX Games\\FightingGame\\android\\res\\values\\strings.xml",
                     "position": {
                         "startLine": 3,
                         "startColumn": 4,
@@ -31,7 +31,52 @@
                     "endOffset": 564
                 },
                 "from": {
-                    "file": "/Users/ryanwiener/Documents/Programs/java/LibGDX Games/FightingGame/android/res/values/styles.xml",
+                    "file": "C:\\Users\\ryanwiener\\Documents\\Programs\\java\\LibGDX Games\\FightingGame\\android\\res\\values\\styles.xml",
+                    "position": {
+                        "startLine": 2,
+                        "startColumn": 4,
+                        "startOffset": 17,
+                        "endLine": 9,
+                        "endColumn": 12,
+                        "endOffset": 475
+                    }
+                }
+            }
+        ]
+    },
+    {
+        "outputFile": "C:\\Users\\ryanl\\Documents\\Programs\\LibGDX Games\\FightingGame\\android\\build\\intermediates\\incremental\\mergeDebugResources\\merged.dir\\values\\values.xml",
+        "map": [
+            {
+                "to": {
+                    "startLine": 2,
+                    "startColumn": 4,
+                    "startOffset": 55,
+                    "endColumn": 50,
+                    "endOffset": 101
+                },
+                "from": {
+                    "file": "C:\\Users\\ryanl\\Documents\\Programs\\LibGDX Games\\FightingGame\\android\\res\\values\\strings.xml",
+                    "position": {
+                        "startLine": 3,
+                        "startColumn": 4,
+                        "startOffset": 56,
+                        "endColumn": 50,
+                        "endOffset": 102
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 3,
+                    "startColumn": 4,
+                    "startOffset": 106,
+                    "endLine": 10,
+                    "endColumn": 12,
+                    "endOffset": 564
+                },
+                "from": {
+                    "file": "C:\\Users\\ryanl\\Documents\\Programs\\LibGDX Games\\FightingGame\\android\\res\\values\\styles.xml",
                     "position": {
                         "startLine": 2,
                         "startColumn": 4,

@@ -3,6 +3,7 @@ package com.tutorial.game.server;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.Timer;
 import com.tutorial.game.characters.Character;
 
@@ -11,7 +12,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.UUID;
 
-public class Connection {
+public class Connection implements Disposable {
 
 	private Socket client;
 	private ServerGame serverGame;
@@ -62,16 +63,8 @@ public class Connection {
 				if (serverGame != null) {
 					out.println(serverGame);
 					if (serverGame.getIsDisconnected()) {
-						try {
-							in.close();
-							out.close();
-							client.close();
-						} catch (IOException e) {
-							System.err.println("Closing connection failed");
-							System.exit(1);
-						}
+						dispose();
 						Thread.currentThread().interrupt();
-						return;
 					}
 				}
 			}
@@ -85,5 +78,20 @@ public class Connection {
 
 	public ServerGame getServerGame() {
 		return serverGame;
+	}
+
+	public UUID getUUID() { return id; }
+
+	@Override
+	public void dispose() {
+        serverGame.removePlayer(id);
+		try {
+			in.close();
+			out.close();
+			client.close();
+		} catch (IOException e) {
+			System.err.println("Closing connection failed");
+			System.exit(1);
+		}
 	}
 }

@@ -66,6 +66,7 @@ public class OnlineGameScreen implements Screen {
         listenServer();
         map = new DefaultMap();
         batch = new SpriteBatch();
+        batch.setProjectionMatrix(map.getCamera().combined);
         String id = null;
         try {
             id = in.readLine();
@@ -124,7 +125,6 @@ public class OnlineGameScreen implements Screen {
             System.exit(1);
         }
         map.act(delta);
-        batch.setProjectionMatrix(map.getCamera().combined);
         batch.begin();
         map.draw(batch);
         batch.end();
@@ -168,6 +168,7 @@ public class OnlineGameScreen implements Screen {
     @Override
     public void dispose() {
         map.dispose();
+        batch.dispose();
         try {
             out.println("disconnecting");
             socket.close();

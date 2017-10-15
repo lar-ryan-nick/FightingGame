@@ -12,7 +12,7 @@ import static com.tutorial.game.constants.Constants.CHARACTER_SCALE;
  * Created by ryanwiener on 9/29/17.
  */
 
-public class ClientCharacter extends Character implements Disposable {
+public class ClientCharacter extends Character {
 
     private Sprite characterImage;
     private Sprite healthBar;
@@ -48,6 +48,7 @@ public class ClientCharacter extends Character implements Disposable {
 
     @Override
     public void dispose() {
+        super.dispose();
         characterImage.getTexture().dispose();
         healthBar.getTexture().dispose();
     }

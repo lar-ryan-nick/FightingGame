@@ -25,13 +25,13 @@ import static com.tutorial.game.constants.Constants.WORLD_WIDTH;
 public abstract class Map {
 
     private World world;
-    private Box2DDebugRenderer renderer;
+    //private Box2DDebugRenderer renderer;
     private OrthographicCamera camera;
     private Array<Character> characters;
 
     Map() {
         world = new World(new Vector2(0, -200f), true);
-        renderer = new Box2DDebugRenderer();
+        //renderer = new Box2DDebugRenderer();
         camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         characters = new Array<Character>();
         /*
@@ -106,11 +106,9 @@ public abstract class Map {
     }
 
     public void draw(Batch batch) {
-        renderer.render(world, camera.combined);
+        //renderer.render(world, camera.combined); uncommenting this line will block out character sprites only uncomment for debugging box2D
         for (int i = 0; i < characters.size; ++i) {
-            if (characters.get(i) instanceof ClientCharacter) {
-                ((ClientCharacter) characters.get(i)).draw(batch, 1);
-            }
+            characters.get(i).draw(batch, 1);
         }
     }
 
@@ -120,7 +118,7 @@ public abstract class Map {
                 ((ClientCharacter) characters.get(i)).dispose();
             }
         }
-        renderer.dispose();
+        //renderer.dispose();
         world.dispose();
     }
 

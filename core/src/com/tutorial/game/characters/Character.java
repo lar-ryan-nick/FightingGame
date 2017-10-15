@@ -10,6 +10,7 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
@@ -31,7 +32,7 @@ import static com.tutorial.game.constants.Constants.WORLD_WIDTH;
  * Created by ryanl on 8/6/2017.
  */
 
-public class Character extends Actor {
+public class Character extends Actor implements Disposable {
 
     protected String characterImagePath;
     private Body characterBody;
@@ -545,5 +546,10 @@ public class Character extends Actor {
 
     public boolean getIsFlinching() {
         return currFlinchNum >= 0;
+    }
+
+    @Override
+    public void dispose() {
+        characterBody.getWorld().destroyBody(characterBody);
     }
 }

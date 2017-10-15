@@ -11,7 +11,6 @@ import com.badlogic.gdx.utils.Array;
 public class ServerApplication implements ApplicationListener {
 
     private Server server;
-    //private ServerGame serverGame;
 
     @Override
     public void create() {
@@ -28,14 +27,14 @@ public class ServerApplication implements ApplicationListener {
 
     @Override
     public void render() {
-        //serverGame.render();
         Array<ServerGame> serverGames = server.getServerGames();
         synchronized (serverGames) {
             for (int i = 0; i < serverGames.size; ++i) {
-                if (serverGames.get(i).getIsDisconnected()) {
-                    serverGames.removeIndex(i);
-                    --i;
-                } else {
+				if (serverGames.get(i).isReadyToRemove()) {
+					serverGames.get(i).dispose();
+					serverGames.removeIndex(i);
+                    i--;
+				} else if (!serverGames.get(i).getIsDisconnected()) {
                     serverGames.get(i).act(Gdx.graphics.getDeltaTime());
                 }
             }
@@ -54,6 +53,6 @@ public class ServerApplication implements ApplicationListener {
 
     @Override
     public void dispose() {
-
+        server.dispose();
     }
 }

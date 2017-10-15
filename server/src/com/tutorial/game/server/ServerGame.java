@@ -36,25 +36,44 @@ import static com.tutorial.game.constants.Constants.WORLD_WIDTH;
 public class ServerGame implements Disposable {
 
     private Map map;
-    /*
-    private World world;
-    private Array<Character> players;
-    private Array<ServerController> controllers;
-    */
+    private int numPlayers;
     private boolean isDisconnected;
 
     ServerGame() {
         isDisconnected = false;
         map = new DefaultMap();
+        numPlayers = 0;
     }
 
     public void addPlayer(UUID id) {
         Character player = new Character(map.getWorld());
         player.setPosition(player.getWidth(), 0);
+        numPlayers++;
         //players.add(player);
         map.addCharacter(player);
         ServerController controller = new ServerController(player, id);
         //controllers.add(controller);
+        /*
+        System.out.println(numPlayers);
+        System.out.println(map.getCharacters().size);
+        */
+    }
+
+    public void removePlayer(UUID id) {
+        Array<Character> players = map.getCharacters();
+        for (int i = 0; i < players.size; ++i) {
+            if (players.get(i).getController() instanceof ServerController) {
+                if (((ServerController) players.get(i).getController()).getUUID().equals(id)) {
+                    players.removeIndex(i);
+                    numPlayers--;
+                    break;
+                }
+            }
+        }
+        /*
+        System.out.println(numPlayers);
+        System.out.println(map.getCharacters().size);
+        */
     }
 
     public void sendInput(String input, UUID uuid) {
@@ -85,9 +104,13 @@ public class ServerGame implements Disposable {
         return isDisconnected;
     }
 
+    public boolean isReadyToRemove() {
+        return (isDisconnected && numPlayers <= 0);
+    }
+
     @Override
     public void dispose() {
-
+        map.dispose();
     }
 
     @Override
