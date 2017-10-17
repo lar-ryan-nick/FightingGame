@@ -36,7 +36,9 @@ public class AIController extends Controller {
                             if (character.getX() > player.getX()) {
                                 player.setFlip(false, false);
                                 if (character.getX() - player.getX() < 16 * CHARACTER_SCALE + player.getWidth() && Math.abs(character.getY() - player.getY()) <= player.getHeight()) {
-                                    player.jab();
+                                    if (Math.random() * 100 < 5) {
+                                        player.jab();
+                                    }
                                     player.setIsMovingRight(false);
                                 } else {
                                     player.setIsMovingRight(true);
@@ -44,7 +46,9 @@ public class AIController extends Controller {
                             } else {
                                 player.setFlip(true, false);
                                 if (player.getX() - character.getX() < 16 * CHARACTER_SCALE + player.getWidth() && Math.abs(character.getY() - player.getY()) <= player.getHeight()) {
-                                    player.jab();
+                                    if (Math.random() * 100 < 5) {
+                                        player.jab();
+                                    }
                                     player.setIsMovingLeft(false);
                                 } else {
                                     player.setIsMovingLeft(true);

@@ -110,7 +110,7 @@ public class Character extends Actor implements Disposable {
             public void run() {
                 updateFlinchingAnim();
             }
-        }, 0, .125f);
+        }, 0, .075f);
         flinchTimer.stop();
         BodyDef box = new BodyDef();
         box.type = BodyDef.BodyType.DynamicBody;
@@ -149,7 +149,7 @@ public class Character extends Actor implements Disposable {
         if (!isDead) {
             currPunchNum = -1;
             punchingTimer.stop();
-            currFlinchNum = 1;
+            currFlinchNum = 0;
             flinchTimer.start();
         }
     }
@@ -184,7 +184,7 @@ public class Character extends Actor implements Disposable {
 
     public void setIsCrouching(boolean val) {
         if (!isDead) {
-            if (!isInAir && currPunchNum < 0 && val) {
+            if (val) {
                 currCrouchNum = 0;
                 standingTimer.stop();
                 crouchingTimer.start();
@@ -213,7 +213,7 @@ public class Character extends Actor implements Disposable {
 
     protected void updateCrouchingAnim() {
         if (!isDead) {
-            if (!isInAir && currCrouchNum >= 0 && currPunchNum < 0) {
+            if (!isInAir && getIsCrouching() && !getIsPunching()) {
                 if (currCrouchNum <= 2) {
                     setTexture("img/character/character_crouch" + (currCrouchNum + 1) + ".png");
                     ++currCrouchNum;
@@ -222,9 +222,6 @@ public class Character extends Actor implements Disposable {
                     currCrouchNum = 2;
                     crouchingTimer.stop();
                 }
-            } else if (!isInAir && currPunchNum < 0) {
-                currCrouchNum = -1;
-                crouchingTimer.stop();
             }
         }
     }
@@ -251,7 +248,7 @@ public class Character extends Actor implements Disposable {
                 } else {
                     setTexture("img/character/character_idle.png");
                 }
-                coolDown = 15;
+                coolDown = 10;
                 currPunchNum = -1;
                 punchingTimer.stop();
             } else if (currPunchNum >= 0) {
@@ -317,18 +314,13 @@ public class Character extends Actor implements Disposable {
             BodyDef box = new BodyDef();
             box.type = BodyDef.BodyType.DynamicBody;
             // make sure foot placement is constant for different animations
-            if (currPunchNum >= 0) {
-                //   if (isFacingRight) {
-             //       box.position.set(getX() + getWidth() / 2 + widthDifference, getY() + getHeight() / 2);
-             //   } else {
-                box.position.set(getX() + getWidth() / 2 - widthDifference / 2, getY() + getHeight() / 2);
-             //   }
+            if (getIsPunching() || getIsFlinching() || (!getIsDead() && !getIsCrouching() && !isInAir)) {
+                if (widthDifference != 0) {
+                    System.out.println(widthDifference);
+                }
+                box.position.set(getX() + getWidth() / 2 - widthDifference, getY() + getHeight() / 2);
             } else {
-         //       if (!isFacingRight) {
                 box.position.set(getX() + getWidth() / 2, getY() + getHeight() / 2);
-            //    } else {
-            //        box.position.set(getX() + getWidth() / 2, getY() + getHeight() / 2);
-          //      }
             }
             // make sure that character didn't fall of the map
             if (box.position.x < 0) {
@@ -341,7 +333,7 @@ public class Character extends Actor implements Disposable {
             characterBody = world.createBody(box);
             characterBody.setUserData(this);
             PolygonShape rectangle = new PolygonShape();
-            Json json = new Json();
+            //Json json = new Json();
             int leftIndex = characterImagePath.lastIndexOf("/") + 1;
             int rightIndex = characterImagePath.lastIndexOf(".");
             JsonValue fixtureJSON = new JsonReader().parse(Gdx.files.internal("json/" + characterImagePath.substring(leftIndex, rightIndex) + "_verticies.json")).child();
