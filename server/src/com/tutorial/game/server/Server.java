@@ -16,11 +16,9 @@ public class Server implements Runnable, Disposable {
 
 	Server() {
 		int port = 8000;
-		/*
 		if (System.getenv("PORT") != null) {
 			port = Integer.parseInt(System.getenv("PORT"));
 		}
-		*/
 		serverSocket = null;
 		serverGames = new Array<ServerGame>();
 		try {
@@ -38,7 +36,7 @@ public class Server implements Runnable, Disposable {
 			Connection connection = null;
 			try {
 				connection = new Connection(serverSocket.accept());
-				boolean added = false;
+				System.out.println("Made a connection!");
 				synchronized (serverGames) {
 					if (serverGames.size > 0 && !serverGames.get(serverGames.size - 1).isFull()) {
 						connection.setServerGame(serverGames.get(serverGames.size - 1));

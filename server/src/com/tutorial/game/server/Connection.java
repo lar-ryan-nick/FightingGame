@@ -32,6 +32,8 @@ public class Connection implements Disposable {
 			System.err.println("in or out failed");
 			System.exit(-1);
 		}
+		System.out.println(client);
+		System.out.println(id);
 		Thread inputThread = new Thread(new Runnable() {
 			@Override
 			public void run() {

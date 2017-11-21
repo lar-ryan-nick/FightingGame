@@ -29,7 +29,7 @@ public abstract class Map {
     private OrthographicCamera camera;
     private Array<Character> characters;
 
-    Map() {
+    public Map() {
         world = new World(new Vector2(0, -200f), true);
         //renderer = new Box2DDebugRenderer();
         camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());

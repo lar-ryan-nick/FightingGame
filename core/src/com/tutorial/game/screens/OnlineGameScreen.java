@@ -49,16 +49,18 @@ public class OnlineGameScreen implements Screen {
 
     public void listenServer() {
         try{
-            socket = new Socket("localhost", 8000);
+            socket = new Socket("http://fighting-game.herokuapp.com", 80);
+            //socket = new Socket("localhost", 8000);
             out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (UnknownHostException e) {
-            System.out.println("Unknown host: localhost");
+            System.out.println("Unknown host: http://fighting-game.herokuapp.com");
             System.exit(1);
         } catch (IOException e) {
             System.out.println("Can't read");
             System.exit(1);
         }
+        System.out.println(socket);
     }
 
     @Override
