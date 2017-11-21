@@ -27,13 +27,12 @@ public class Connection implements Disposable {
 		try {
 			in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 			out = new PrintWriter(client.getOutputStream(), true);
-			out.println(id.toString());
+			System.out.println(id);
+			out.println(id);
 		} catch (IOException e) {
 			System.err.println("in or out failed");
 			System.exit(-1);
 		}
-		System.out.println(client);
-		System.out.println(id);
 		Thread inputThread = new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -41,7 +40,7 @@ public class Connection implements Disposable {
 					try {
 						String line = null;
 						while ((line = in.readLine()) != null) {
-							//Gdx.app.log("Received", line);
+							Gdx.app.log("Received", line);
 							if (line.equals("disconnecting")) {
 								serverGame.disconnect();
 								Thread.currentThread().interrupt();

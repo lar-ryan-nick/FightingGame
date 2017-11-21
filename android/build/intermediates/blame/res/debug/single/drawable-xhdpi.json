@@ -1,14 +1,18 @@
 [
     {
-        "merged": "/Users/ryanwiener/Documents/Programs/java/LibGDX Games/FightingGame/android/build/intermediates/res/merged/debug/drawable-xhdpi/ic_launcher.png",
-        "source": "/Users/ryanwiener/Documents/Programs/java/LibGDX Games/FightingGame/android/res/drawable-xhdpi/ic_launcher.png"
+        "merged": "C:\\Users\\ryanl\\Documents\\Programs\\LibGDX Games\\FightingGame\\android\\build\\intermediates\\res\\merged\\debug\\drawable-xhdpi\\ic_launcher.png",
+        "source": "C:\\Users\\ryanl\\Documents\\Programs\\LibGDX Games\\FightingGame\\android\\res\\drawable-xhdpi\\ic_launcher.png"
     },
     {
-        "merged": "/Users/ryanwiener/Documents/Programs/java/LibGDX Games/FightingGame/C:\\Users\\ryanwiener\\Documents\\Programs\\java\\LibGDX Games\\FightingGame\\android\\build\\intermediates\\res\\merged\\debug\\drawable-xhdpi\\ic_launcher.png",
-        "source": "/Users/ryanwiener/Documents/Programs/java/LibGDX Games/FightingGame/C:\\Users\\ryanwiener\\Documents\\Programs\\java\\LibGDX Games\\FightingGame\\android\\res\\drawable-xhdpi\\ic_launcher.png"
+        "merged": "C:\\Users\\ryanwiener\\Documents\\Programs\\java\\LibGDX Games\\FightingGame\\C:\\Users\\ryanwiener\\Documents\\Programs\\java\\LibGDX Games\\FightingGame\\android\\build\\intermediates\\res\\merged\\debug\\drawable-xhdpi\\ic_launcher.png",
+        "source": "C:\\Users\\ryanwiener\\Documents\\Programs\\java\\LibGDX Games\\FightingGame\\C:\\Users\\ryanwiener\\Documents\\Programs\\java\\LibGDX Games\\FightingGame\\android\\res\\drawable-xhdpi\\ic_launcher.png"
     },
     {
-        "merged": "/Users/ryanwiener/Documents/Programs/java/LibGDX Games/FightingGame/C:\\Users\\ryanl\\Documents\\Programs\\LibGDX Games\\FightingGame\\android\\build\\intermediates\\res\\merged\\debug\\drawable-xhdpi\\ic_launcher.png",
-        "source": "/Users/ryanwiener/Documents/Programs/java/LibGDX Games/FightingGame/C:\\Users\\ryanl\\Documents\\Programs\\LibGDX Games\\FightingGame\\android\\res\\drawable-xhdpi\\ic_launcher.png"
+        "merged": "C:\\Users\\ryanwiener\\Documents\\Programs\\java\\LibGDX Games\\FightingGame\\C:\\Users\\ryanl\\Documents\\Programs\\LibGDX Games\\FightingGame\\android\\build\\intermediates\\res\\merged\\debug\\drawable-xhdpi\\ic_launcher.png",
+        "source": "C:\\Users\\ryanwiener\\Documents\\Programs\\java\\LibGDX Games\\FightingGame\\C:\\Users\\ryanl\\Documents\\Programs\\LibGDX Games\\FightingGame\\android\\res\\drawable-xhdpi\\ic_launcher.png"
+    },
+    {
+        "merged": "C:\\Users\\ryanwiener\\Documents\\Programs\\java\\LibGDX Games\\FightingGame\\android\\build\\intermediates\\res\\merged\\debug\\drawable-xhdpi\\ic_launcher.png",
+        "source": "C:\\Users\\ryanwiener\\Documents\\Programs\\java\\LibGDX Games\\FightingGame\\android\\res\\drawable-xhdpi\\ic_launcher.png"
     }
 ]

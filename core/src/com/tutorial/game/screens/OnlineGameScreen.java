@@ -49,12 +49,12 @@ public class OnlineGameScreen implements Screen {
 
     public void listenServer() {
         try{
-            socket = new Socket("http://fighting-game.herokuapp.com", 80);
+            socket = new Socket("fighting-game.herokuapp.com", 80);
             //socket = new Socket("localhost", 8000);
             out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (UnknownHostException e) {
-            System.out.println("Unknown host: http://fighting-game.herokuapp.com");
+            System.out.println("Unknown host: fighting-game.herokuapp.com");
             System.exit(1);
         } catch (IOException e) {
             System.out.println("Can't read");
@@ -71,7 +71,7 @@ public class OnlineGameScreen implements Screen {
         batch.setProjectionMatrix(map.getCamera().combined);
         String id = null;
         try {
-            id = in.readLine();
+            while ((id = in.readLine()) == null) { System.out.println(id); }
         } catch (IOException e) {
             System.err.println("Couldn't read id");
             System.exit(-1);

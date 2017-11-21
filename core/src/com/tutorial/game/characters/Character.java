@@ -11,16 +11,14 @@ import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.Disposable;
-import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.Timer;
 import com.tutorial.game.controllers.AIController;
 import com.tutorial.game.controllers.Controller;
 import com.tutorial.game.controllers.NetworkController;
-import com.tutorial.game.screens.LocalGameScreen;
 
-import java.util.HashMap;
+import java.util.Map;
 
 import static com.tutorial.game.constants.Constants.CATEGORY_ARM;
 import static com.tutorial.game.constants.Constants.CATEGORY_CHARACTER;
@@ -471,7 +469,7 @@ public class Character extends Actor implements Disposable {
         return uuid + "x" + i + "=" + getX() + "&y" + i + "=" + getY() + "&velX" + i + "=" + characterBody.getLinearVelocity().x + "&velY" + i + "=" + characterBody.getLinearVelocity().y + "&facingRight" + i + "=" + isFacingRight + "&health" + i + "=" + health + "&imageName" + i + "=" + characterImagePath;
     }
 
-    public void updateFromMap(HashMap<String, String> vals, int index) {
+    public void updateFromMap(Map<String, String> vals, int index) {
         //HashMap<String, String> vals = parseString(s);
         if (vals != null) {
             super.setPosition(Float.parseFloat(vals.get("x" + index)), Float.parseFloat(vals.get("y" + index)));
