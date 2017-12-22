@@ -48,7 +48,7 @@ public class OnlineGameScreen implements Screen {
     private SpriteBatch batch;
 
     public void listenServer() {
-        try {
+        try{
             socket = new Socket("76.90.139.212", 8000);
             //socket = new Socket("localhost", 8000);
             out = new PrintWriter(socket.getOutputStream(), true);
