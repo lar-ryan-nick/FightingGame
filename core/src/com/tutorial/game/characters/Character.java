@@ -123,7 +123,7 @@ public class Character extends Actor implements Disposable {
     public void jump() {
         if (!isDead && !isInAir && currFlinchNum < 0) {
             setTexture("img/character/character_jump_start.png");
-            characterBody.applyForceToCenter(0, 100000f * characterBody.getMass(), true);
+            characterBody.applyForceToCenter(0, 10000f * characterBody.getMass(), true);
             isInAir = true;
             currCrouchNum = -1;
             crouchingTimer.stop();
