@@ -48,13 +48,13 @@ public class OnlineGameScreen implements Screen {
     private SpriteBatch batch;
 
     public void listenServer() {
-        try{
-            socket = new Socket("fighting-game.herokuapp.com", 80);
+        try {
+            socket = new Socket("76.90.139.212", 8000);
             //socket = new Socket("localhost", 8000);
             out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (UnknownHostException e) {
-            System.out.println("Unknown host: fighting-game.herokuapp.com");
+            System.out.println("Unknown host");
             System.exit(1);
         } catch (IOException e) {
             System.out.println("Can't read");

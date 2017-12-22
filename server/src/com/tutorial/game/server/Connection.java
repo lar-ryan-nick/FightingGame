@@ -45,7 +45,7 @@ public class Connection implements Disposable {
 								serverGame.disconnect();
 								Thread.currentThread().interrupt();
 								return;
-							} else {
+							} else if (serverGame != null) {
 								serverGame.sendInput(line, id);
 							}
 						}
@@ -66,6 +66,7 @@ public class Connection implements Disposable {
 					if (serverGame.getIsDisconnected()) {
 						dispose();
 						Thread.currentThread().interrupt();
+						return;
 					}
 				}
 			}

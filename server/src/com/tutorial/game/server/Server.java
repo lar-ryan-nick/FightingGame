@@ -10,14 +10,9 @@ public class Server implements Runnable, Disposable {
 
 	private ServerSocket serverSocket;
 	private Array<ServerGame> serverGames;
-	private int connections;
 
 	Server() {
 		int port = 8000;
-		if (System.getenv("PORT") != null) {
-			port = Integer.parseInt(System.getenv("PORT"));
-		}
-		connections = 0;
 		serverSocket = null;
 		serverGames = new Array<ServerGame>();
 		try {
@@ -37,18 +32,16 @@ public class Server implements Runnable, Disposable {
 				System.out.println("Waiting for a connection...");
 				connection = new Connection(serverSocket.accept());
 				System.out.println("Made a connection!");
-				connections++;
-				if (connections > 2) {
-					synchronized (serverGames) {
-						if (serverGames.size > 0 && !serverGames.get(serverGames.size - 1).isFull()) {
-							connection.setServerGame(serverGames.get(serverGames.size - 1));
-							break;
-						} else {
-							serverGames.add(new ServerGame());
-							connection.setServerGame(serverGames.get(serverGames.size - 1));
-						}
+				synchronized (serverGames) {
+					if (serverGames.size > 0 && !serverGames.get(serverGames.size - 1).isFull()) {
+						connection.setServerGame(serverGames.get(serverGames.size - 1));
+						break;
+					} else {
+						serverGames.add(new ServerGame());
+						connection.setServerGame(serverGames.get(serverGames.size - 1));
 					}
 				}
+				System.out.println(serverGames.size);
 			} catch (IOException e) {
 				System.out.println("Accept failed");
 				System.exit(1);
