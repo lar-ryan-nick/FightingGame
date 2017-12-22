@@ -35,7 +35,6 @@ public class Server implements Runnable, Disposable {
 				synchronized (serverGames) {
 					if (serverGames.size > 0 && !serverGames.get(serverGames.size - 1).isFull()) {
 						connection.setServerGame(serverGames.get(serverGames.size - 1));
-						break;
 					} else {
 						serverGames.add(new ServerGame());
 						connection.setServerGame(serverGames.get(serverGames.size - 1));

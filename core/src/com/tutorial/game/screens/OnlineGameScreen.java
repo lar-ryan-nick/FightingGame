@@ -98,6 +98,7 @@ public class OnlineGameScreen implements Screen {
                 if (line.equals("Disconnected")) {
                     ((Game) Gdx.app.getApplicationListener()).setScreen(new MainScreen());
                     this.dispose();
+                    return;
                 }
                 HashMap<String, String> params = parseString(line);
                 if (params != null) {
