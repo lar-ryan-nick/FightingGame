@@ -42,7 +42,9 @@ public class Connection implements Disposable {
 						while ((line = in.readLine()) != null) {
 							Gdx.app.log("Received", line);
 							if (line.equals("disconnecting")) {
-								serverGame.disconnect();
+								if (serverGame != null) {
+									serverGame.disconnect();
+								}
 								Thread.currentThread().interrupt();
 								return;
 							} else if (serverGame != null) {
