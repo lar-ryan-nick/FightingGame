@@ -57,7 +57,7 @@ public class Connection implements Disposable {
 			}
 		});
 		inputThread.start();
-		Timer outputTimer = new Timer();
+		final Timer outputTimer = new Timer();
 		outputTimer.scheduleTask(new Timer.Task() {
 			@Override
 			public void run() {
@@ -65,7 +65,7 @@ public class Connection implements Disposable {
 					out.println(serverGame);
 					if (serverGame.getIsDisconnected()) {
 						dispose();
-						Thread.currentThread().interrupt();
+						outputTimer.stop();
 						return;
 					}
 				}
