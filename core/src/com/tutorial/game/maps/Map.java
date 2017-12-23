@@ -40,10 +40,12 @@ public abstract class Map {
         cam.position.x = WORLD_WIDTH / 2;
         cam.position.y = WORLD_HEIGHT / 2;
         */
-        if (Gdx.graphics.getWidth() / Gdx.graphics.getHeight() < 16f / 9) {
-            camera.zoom = WORLD_WIDTH / Gdx.graphics.getWidth();
-        } else {
-            camera.zoom = WORLD_HEIGHT / Gdx.graphics.getHeight();
+        if (Gdx.graphics.getHeight() != 0) {
+            if (Gdx.graphics.getWidth() / Gdx.graphics.getHeight() < 16f / 9) {
+                camera.zoom = WORLD_WIDTH / Gdx.graphics.getWidth();
+            } else {
+                camera.zoom = WORLD_HEIGHT / Gdx.graphics.getHeight();
+            }
         }
         camera.position.x = WORLD_WIDTH / 2;
         camera.position.y = WORLD_HEIGHT / 2;
