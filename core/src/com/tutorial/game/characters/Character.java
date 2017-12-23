@@ -51,7 +51,7 @@ public class Character extends Actor implements Disposable {
 	private Timer standingTimer;
 	private Timer punchingTimer;
 	private Timer flinchTimer;
-	private boolean needsUpdate;
+	protected boolean needsUpdate;
 
 	public Character(World world) {
 		super();
@@ -296,7 +296,8 @@ public class Character extends Actor implements Disposable {
 		}
 	}
 
-	protected void updateCharacterSize() {
+	private void updateCharacterSize() {
+        needsUpdate = false;
 		TextureData textureData = TextureData.Factory.loadFromFile(Gdx.files.internal(characterImagePath), true);
 		float widthDifference = 0;
 		if (!isFacingRight) {
@@ -322,64 +323,59 @@ public class Character extends Actor implements Disposable {
 		}
 		box.fixedRotation = true;
 		box.linearVelocity.set(velocity);
-		if (!world.isLocked()) {
-			world.destroyBody(characterBody);
-            characterBody = world.createBody(box);
-			needsUpdate = false;
-			characterBody.setUserData(this);
-			PolygonShape rectangle = new PolygonShape();
-			//Json json = new Json();
-			int leftIndex = characterImagePath.lastIndexOf("/") + 1;
-			int rightIndex = characterImagePath.lastIndexOf(".");
-			JsonValue fixtureJSON = new JsonReader().parse(Gdx.files.internal("json/" + characterImagePath.substring(leftIndex, rightIndex) + "_verticies.json")).child();
-			int numFixtures = fixtureJSON.asInt();
-			fixtureJSON = fixtureJSON.next();
-			for (int i = 0; i < numFixtures; ++i) {
-				JsonValue verticieJSON = fixtureJSON.get(i).child();
-				Vector2[] verticies = new Vector2[verticieJSON.asInt()];
+		world.destroyBody(characterBody);
+		characterBody = world.createBody(box);
+		characterBody.setUserData(this);
+		PolygonShape rectangle = new PolygonShape();
+		//Json json = new Json();
+		int leftIndex = characterImagePath.lastIndexOf("/") + 1;
+		int rightIndex = characterImagePath.lastIndexOf(".");
+		JsonValue fixtureJSON = new JsonReader().parse(Gdx.files.internal("json/" + characterImagePath.substring(leftIndex, rightIndex) + "_verticies.json")).child();
+		int numFixtures = fixtureJSON.asInt();
+		fixtureJSON = fixtureJSON.next();
+		for (int i = 0; i < numFixtures; ++i) {
+			JsonValue verticieJSON = fixtureJSON.get(i).child();
+			Vector2[] verticies = new Vector2[verticieJSON.asInt()];
+			verticieJSON = verticieJSON.next();
+			for (int j = 0; j < verticies.length; ++j) {
+				float xVal = verticieJSON.child().asFloat() * CHARACTER_SCALE;
+				float yVal = verticieJSON.child().next().asFloat() * CHARACTER_SCALE;
+				if (!isFacingRight) {
+					xVal *= -1;
+				}
+				Vector2 verticie = new Vector2(xVal, yVal);
+				verticies[j] = verticie;
 				verticieJSON = verticieJSON.next();
-				for (int j = 0; j < verticies.length; ++j) {
-					float xVal = verticieJSON.child().asFloat() * CHARACTER_SCALE;
-					float yVal = verticieJSON.child().next().asFloat() * CHARACTER_SCALE;
-					if (!isFacingRight) {
-						xVal *= -1;
-					}
-					Vector2 verticie = new Vector2(xVal, yVal);
-					verticies[j] = verticie;
-					verticieJSON = verticieJSON.next();
-				}
-				rectangle.set(verticies);
-				FixtureDef boxFixture = new FixtureDef();
-				boxFixture.shape = rectangle;
-				boxFixture.density = 1f;
-				boxFixture.friction = 1f;
-				boxFixture.restitution = 0f;
-				if (verticieJSON != null) {
-					boxFixture.filter.categoryBits = CATEGORY_ARM;
-					boxFixture.filter.maskBits = -1;
-					boxFixture.isSensor = true;
-				} else {
-					boxFixture.filter.categoryBits = CATEGORY_CHARACTER;
-					boxFixture.filter.maskBits = CATEGORY_ARM | CATEGORY_SCENERY;
-				}
-				Fixture fixture = characterBody.createFixture(boxFixture);
-				if (verticieJSON != null) {
-					fixture.setUserData("jab");
-				} else {
-					fixture.setUserData("");
-				}
 			}
-			rectangle.dispose();
-		} else {
-			needsUpdate = true;
+			rectangle.set(verticies);
+			FixtureDef boxFixture = new FixtureDef();
+			boxFixture.shape = rectangle;
+			boxFixture.density = 1f;
+			boxFixture.friction = 1f;
+			boxFixture.restitution = 0f;
+			if (verticieJSON != null) {
+				boxFixture.filter.categoryBits = CATEGORY_ARM;
+				boxFixture.filter.maskBits = -1;
+				boxFixture.isSensor = true;
+			} else {
+				boxFixture.filter.categoryBits = CATEGORY_CHARACTER;
+				boxFixture.filter.maskBits = CATEGORY_ARM | CATEGORY_SCENERY;
+			}
+			Fixture fixture = characterBody.createFixture(boxFixture);
+			if (verticieJSON != null) {
+				fixture.setUserData("jab");
+			} else {
+				fixture.setUserData("");
+			}
 		}
+		rectangle.dispose();
 	}
 
 	@Override
 	public void act(float delta) {
-		//if (needsUpdate) {
+		if (needsUpdate) {
 			updateCharacterSize();
-		//}
+		}
 		if (coolDown > 0) {
 			--coolDown;
 		}
@@ -424,13 +420,13 @@ public class Character extends Actor implements Disposable {
 	@Override
 	public void setPosition(float x, float y) {
 		super.setPosition(x, y);
-		//updateCharacterSize();
+		needsUpdate = true;
 	}
 
 	public void setFlip(boolean x, boolean y) {
 		if (isFacingRight == x) {
 			isFacingRight = !x;
-			//updateCharacterSize();
+			needsUpdate = true;
 		}
 	}
 
@@ -445,7 +441,7 @@ public class Character extends Actor implements Disposable {
 	protected void setTexture(String internalFilePath) {
 		if (!characterImagePath.equals(internalFilePath)) {
 			characterImagePath = internalFilePath;
-			//updateCharacterSize();
+			needsUpdate = true;
 		}
 	}
 
@@ -474,7 +470,6 @@ public class Character extends Actor implements Disposable {
 			setFlip(!Boolean.parseBoolean(vals.get("facingRight" + index)), false);
 			health = Integer.parseInt(vals.get("health" + index));
 			setTexture(vals.get("imageName" + index));
-			//updateCharacterSize();
 		}
 	}
 /*

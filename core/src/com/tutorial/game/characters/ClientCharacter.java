@@ -40,7 +40,7 @@ public class ClientCharacter extends Character {
     protected void setTexture(String internalFilePath) {
         if (!characterImagePath.equals(internalFilePath)) {
             characterImagePath = internalFilePath;
-            updateCharacterSize();
+            needsUpdate = true;
             characterImage.getTexture().dispose();
             characterImage.setTexture(new Texture(characterImagePath));
         }
