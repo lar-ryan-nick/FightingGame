@@ -304,77 +304,75 @@ public class Character extends Actor implements Disposable {
         }
         setSize(textureData.getWidth() * CHARACTER_SCALE, textureData.getHeight() * CHARACTER_SCALE);
         textureData.disposePixmap();
-        if (!characterBody.getWorld().isLocked()) {
-            synchronized (characterBody.getWorld()) {
-                needsUpdate = false;
-                World world = characterBody.getWorld();
-                Vector2 velocity = characterBody.getLinearVelocity();
-                world.destroyBody(characterBody);
-                BodyDef box = new BodyDef();
-                box.type = BodyDef.BodyType.DynamicBody;
-                // make sure foot placement is constant for different animations
-                if (getIsPunching() || getIsFlinching() || (!getIsDead() && !getIsCrouching() && !isInAir)) {
-                    if (widthDifference != 0) {
-                        System.out.println(widthDifference);
-                    }
-                    box.position.set(getX() + getWidth() / 2 - widthDifference, getY() + getHeight() / 2);
-                } else {
-                    box.position.set(getX() + getWidth() / 2, getY() + getHeight() / 2);
+        World world = characterBody.getWorld();
+        Vector2 velocity = characterBody.getLinearVelocity();
+        if (!world.isLocked()) {
+            world.destroyBody(characterBody);
+            needsUpdate = false;
+            BodyDef box = new BodyDef();
+            box.type = BodyDef.BodyType.DynamicBody;
+            // make sure foot placement is constant for different animations
+            if (getIsPunching() || getIsFlinching() || (!getIsDead() && !getIsCrouching() && !isInAir)) {
+                if (widthDifference != 0) {
+                    System.out.println(widthDifference);
                 }
-                // make sure that character didn't fall of the map
-                if (box.position.x < 0) {
-                    box.position.set(0, box.position.y);
-                } else if (box.position.x > WORLD_WIDTH - getWidth()) {
-                    box.position.set(WORLD_WIDTH - getWidth(), box.position.y);
-                }
-                box.fixedRotation = true;
-                box.linearVelocity.set(velocity);
-                characterBody = world.createBody(box);
-                characterBody.setUserData(this);
-                PolygonShape rectangle = new PolygonShape();
-                //Json json = new Json();
-                int leftIndex = characterImagePath.lastIndexOf("/") + 1;
-                int rightIndex = characterImagePath.lastIndexOf(".");
-                JsonValue fixtureJSON = new JsonReader().parse(Gdx.files.internal("json/" + characterImagePath.substring(leftIndex, rightIndex) + "_verticies.json")).child();
-                int numFixtures = fixtureJSON.asInt();
-                fixtureJSON = fixtureJSON.next();
-                for (int i = 0; i < numFixtures; ++i) {
-                    JsonValue verticieJSON = fixtureJSON.get(i).child();
-                    Vector2[] verticies = new Vector2[verticieJSON.asInt()];
-                    verticieJSON = verticieJSON.next();
-                    for (int j = 0; j < verticies.length; ++j) {
-                        float xVal = verticieJSON.child().asFloat() * CHARACTER_SCALE;
-                        float yVal = verticieJSON.child().next().asFloat() * CHARACTER_SCALE;
-                        if (!isFacingRight) {
-                            xVal *= -1;
-                        }
-                        Vector2 verticie = new Vector2(xVal, yVal);
-                        verticies[j] = verticie;
-                        verticieJSON = verticieJSON.next();
-                    }
-                    rectangle.set(verticies);
-                    FixtureDef boxFixture = new FixtureDef();
-                    boxFixture.shape = rectangle;
-                    boxFixture.density = 1f;
-                    boxFixture.friction = 1f;
-                    boxFixture.restitution = 0f;
-                    if (verticieJSON != null) {
-                        boxFixture.filter.categoryBits = CATEGORY_ARM;
-                        boxFixture.filter.maskBits = -1;
-                        boxFixture.isSensor = true;
-                    } else {
-                        boxFixture.filter.categoryBits = CATEGORY_CHARACTER;
-                        boxFixture.filter.maskBits = CATEGORY_ARM | CATEGORY_SCENERY;
-                    }
-                    Fixture fixture = characterBody.createFixture(boxFixture);
-                    if (verticieJSON != null) {
-                        fixture.setUserData("jab");
-                    } else {
-                        fixture.setUserData("");
-                    }
-                }
-                rectangle.dispose();
+                box.position.set(getX() + getWidth() / 2 - widthDifference, getY() + getHeight() / 2);
+            } else {
+                box.position.set(getX() + getWidth() / 2, getY() + getHeight() / 2);
             }
+            // make sure that character didn't fall of the map
+            if (box.position.x < 0) {
+                box.position.set(0, box.position.y);
+            } else if (box.position.x > WORLD_WIDTH - getWidth()) {
+                box.position.set(WORLD_WIDTH - getWidth(), box.position.y);
+            }
+            box.fixedRotation = true;
+            box.linearVelocity.set(velocity);
+            characterBody = world.createBody(box);
+            characterBody.setUserData(this);
+            PolygonShape rectangle = new PolygonShape();
+            //Json json = new Json();
+            int leftIndex = characterImagePath.lastIndexOf("/") + 1;
+            int rightIndex = characterImagePath.lastIndexOf(".");
+            JsonValue fixtureJSON = new JsonReader().parse(Gdx.files.internal("json/" + characterImagePath.substring(leftIndex, rightIndex) + "_verticies.json")).child();
+            int numFixtures = fixtureJSON.asInt();
+            fixtureJSON = fixtureJSON.next();
+            for (int i = 0; i < numFixtures; ++i) {
+                JsonValue verticieJSON = fixtureJSON.get(i).child();
+                Vector2[] verticies = new Vector2[verticieJSON.asInt()];
+                verticieJSON = verticieJSON.next();
+                for (int j = 0; j < verticies.length; ++j) {
+                    float xVal = verticieJSON.child().asFloat() * CHARACTER_SCALE;
+                    float yVal = verticieJSON.child().next().asFloat() * CHARACTER_SCALE;
+                    if (!isFacingRight) {
+                        xVal *= -1;
+                    }
+                    Vector2 verticie = new Vector2(xVal, yVal);
+                    verticies[j] = verticie;
+                    verticieJSON = verticieJSON.next();
+                }
+                rectangle.set(verticies);
+                FixtureDef boxFixture = new FixtureDef();
+                boxFixture.shape = rectangle;
+                boxFixture.density = 1f;
+                boxFixture.friction = 1f;
+                boxFixture.restitution = 0f;
+                if (verticieJSON != null) {
+                    boxFixture.filter.categoryBits = CATEGORY_ARM;
+                    boxFixture.filter.maskBits = -1;
+                    boxFixture.isSensor = true;
+                } else {
+                    boxFixture.filter.categoryBits = CATEGORY_CHARACTER;
+                    boxFixture.filter.maskBits = CATEGORY_ARM | CATEGORY_SCENERY;
+                }
+                Fixture fixture = characterBody.createFixture(boxFixture);
+                if (verticieJSON != null) {
+                    fixture.setUserData("jab");
+                } else {
+                    fixture.setUserData("");
+                }
+            }
+            rectangle.dispose();
         } else {
             needsUpdate = true;
         }
@@ -542,6 +540,8 @@ public class Character extends Actor implements Disposable {
 
     @Override
     public void dispose() {
-        characterBody.getWorld().destroyBody(characterBody);
+        if (!characterBody.getWorld().isLocked()) {
+            characterBody.getWorld().destroyBody(characterBody);
+        }
     }
 }
