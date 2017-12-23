@@ -455,13 +455,14 @@ public class Character extends Actor implements Disposable {
 		if (getController() instanceof NetworkController) {
 			uuid = "uuid" + i + "=" + ((NetworkController) getController()).getUUID().toString() + "&";
 		}
-		return uuid + "x" + i + "=" + getX() + "&y" + i + "=" + getY() + "&velX" + i + "=" + characterBody.getLinearVelocity().x + "&velY" + i + "=" + characterBody.getLinearVelocity().y + "&facingRight" + i + "=" + isFacingRight + "&health" + i + "=" + health + "&imageName" + i + "=" + characterImagePath;
+		return uuid + "x" + i + "=" + getX() + "&y" + i + "=" + getY() + "&width" + i + "=" + getWidth() + "&velX" + i + "=" + characterBody.getLinearVelocity().x + "&velY" + i + "=" + characterBody.getLinearVelocity().y + "&facingRight" + i + "=" + isFacingRight + "&health" + i + "=" + health + "&imageName" + i + "=" + characterImagePath;
 	}
 
 	public void updateFromMap(Map<String, String> vals, int index) {
 		//HashMap<String, String> vals = parseString(s);
 		if (vals != null) {
-			super.setPosition(Float.parseFloat(vals.get("x" + index)), Float.parseFloat(vals.get("y" + index)));
+			setPosition(Float.parseFloat(vals.get("x" + index)), Float.parseFloat(vals.get("y" + index)));
+			setSize(Float.parseFloat(vals.get("width" + index)), getHeight());
 			characterBody.setLinearVelocity(Float.parseFloat(vals.get("velX" + index)), Float.parseFloat(vals.get("velY" + index)));
 			setFlip(!Boolean.parseBoolean(vals.get("facingRight" + index)), false);
 			health = Integer.parseInt(vals.get("health" + index));
