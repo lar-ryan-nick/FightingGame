@@ -310,11 +310,7 @@ public class Character extends Actor implements Disposable {
 		BodyDef box = new BodyDef();
 		box.type = BodyDef.BodyType.DynamicBody;
 		// make sure foot placement is constant for different animations
-		if (getIsPunching() || getIsFlinching() || (!getIsDead() && !getIsCrouching() && !isInAir)) {
-			box.position.set(getX() + getWidth() / 2 - widthDifference, getY() + getHeight() / 2);
-		} else {
-			box.position.set(getX() + getWidth() / 2, getY() + getHeight() / 2);
-		}
+        box.position.set(getX() + getWidth() / 2 - widthDifference, getY() + getHeight() / 2);
 		// make sure that character didn't fall of the map
 		if (box.position.x < 0) {
 			box.position.set(0, box.position.y);
