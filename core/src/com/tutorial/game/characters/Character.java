@@ -377,9 +377,9 @@ public class Character extends Actor implements Disposable {
 
 	@Override
 	public void act(float delta) {
-		if (needsUpdate) {
+		//if (needsUpdate) {
 			updateCharacterSize();
-		}
+		//}
 		if (coolDown > 0) {
 			--coolDown;
 		}
@@ -424,13 +424,13 @@ public class Character extends Actor implements Disposable {
 	@Override
 	public void setPosition(float x, float y) {
 		super.setPosition(x, y);
-		updateCharacterSize();
+		//updateCharacterSize();
 	}
 
 	public void setFlip(boolean x, boolean y) {
 		if (isFacingRight == x) {
 			isFacingRight = !x;
-			updateCharacterSize();
+			//updateCharacterSize();
 		}
 	}
 
@@ -445,7 +445,7 @@ public class Character extends Actor implements Disposable {
 	protected void setTexture(String internalFilePath) {
 		if (!characterImagePath.equals(internalFilePath)) {
 			characterImagePath = internalFilePath;
-			updateCharacterSize();
+			//updateCharacterSize();
 		}
 	}
 
@@ -474,7 +474,7 @@ public class Character extends Actor implements Disposable {
 			setFlip(!Boolean.parseBoolean(vals.get("facingRight" + index)), false);
 			health = Integer.parseInt(vals.get("health" + index));
 			setTexture(vals.get("imageName" + index));
-			updateCharacterSize();
+			//updateCharacterSize();
 		}
 	}
 /*
@@ -537,8 +537,10 @@ public class Character extends Actor implements Disposable {
 
 	@Override
 	public void dispose() {
+		/*
 		if (!characterBody.getWorld().isLocked()) {
 			characterBody.getWorld().destroyBody(characterBody);
 		}
+		*/
 	}
 }
