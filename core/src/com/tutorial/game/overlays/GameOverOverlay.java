@@ -24,14 +24,13 @@ import com.tutorial.game.screens.MainScreen;
  * Created by ryanwiener on 1/1/18.
  */
 
-public class GameOverOverlay implements Disposable {
+public class GameOverOverlay extends Overlay {
 
 	private boolean won;
-	private Stage stage;
 
 	public GameOverOverlay(boolean w) {
+	    super();
 		won = w;
-		stage = new Stage();
 		BitmapFont impactWhite48 = new BitmapFont(Gdx.files.internal("font/ImpactWhite48.fnt"), false);
 		Label.LabelStyle labelStyle = new Label.LabelStyle(impactWhite48, Color.WHITE);
 		CharSequence titleText;
@@ -57,17 +56,4 @@ public class GameOverOverlay implements Disposable {
         ((InputMultiplexer) Gdx.input.getInputProcessor()).addProcessor(stage);
 	}
 
-	public void resize(int width, int height) {
-        stage.getViewport().update(width, height);
-        stage.getCamera().update();
-    }
-
-	public void draw() {
-		stage.draw();
-	}
-
-	@Override
-    public void dispose() {
-        ((InputMultiplexer) Gdx.input.getInputProcessor()).removeProcessor(stage);
-    }
 }

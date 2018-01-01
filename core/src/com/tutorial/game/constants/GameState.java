@@ -6,6 +6,7 @@ package com.tutorial.game.constants;
 
 public enum GameState {
     WAITING,
+    COUNTING,
     PLAYING,
     PAUSED,
     WON,

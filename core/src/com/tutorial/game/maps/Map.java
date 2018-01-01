@@ -12,14 +12,12 @@ import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
+import com.badlogic.gdx.utils.Timer;
 import com.tutorial.game.characters.Character;
 import com.tutorial.game.characters.ClientCharacter;
 import com.tutorial.game.constants.GameState;
 import com.tutorial.game.controllers.LocalPlayerController;
 import com.tutorial.game.controllers.PlayerController;
-
-import java.io.Serializable;
-import java.util.ArrayList;
 
 import static com.tutorial.game.constants.Constants.WORLD_HEIGHT;
 import static com.tutorial.game.constants.Constants.WORLD_WIDTH;
@@ -35,9 +33,11 @@ public abstract class Map {
 	private GameState gameState;
 	private OrthographicCamera camera;
 	private Array<Character> characters;
+	private int count;
 
 	public Map() {
 		gameState = GameState.WAITING;
+		count = 0;
 		world = new World(new Vector2(0, -200f), true);
 		//renderer = new Box2DDebugRenderer();
 		camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -132,10 +132,10 @@ public abstract class Map {
 	}
 
 	public void act(float delta) {
-		world.step(1 / 60f, 8, 3);
-		for (int i = 0; i < characters.size; ++i) {
-			characters.get(i).act(delta);
-		}
+        world.step(1 / 60f, 8, 3);
+        for (int i = 0; i < characters.size; ++i) {
+            characters.get(i).act(delta);
+        }
 	}
 
 	public void draw(Batch batch) {
@@ -153,6 +153,16 @@ public abstract class Map {
 		world.dispose();
 	}
 
+	public int getCount() {
+	    return count;
+    }
+
+    public void setCharacterDisable(boolean dis) {
+	    for (Character character : characters) {
+            character.setDisabled(dis);
+        }
+    }
+
 	public void terminate() {
 	    gameState = GameState.TERMINATED;
     }
@@ -163,7 +173,32 @@ public abstract class Map {
 
 	public void addCharacter(Character character) {
 		characters.add(character);
+		if (characters.size > 1) {
+		    beginGame();
+        }
 	}
+
+	public void beginGame() {
+	    gameState = GameState.COUNTING;
+        characters.get(0).setPosition(characters.get(0).getWidth(), 0);
+        characters.get(0).setFlip(false, false);
+        characters.get(1).setPosition(WORLD_WIDTH - 2 * characters.get(1).getWidth(), 0);
+        characters.get(1).setFlip(true, false);
+        setCharacterDisable(true);
+        count = 3;
+        final Timer countDown = new Timer();
+        countDown.scheduleTask(new Timer.Task() {
+            @Override
+            public void run() {
+                count--;
+                if (count < 1) {
+                    gameState = GameState.PLAYING;
+                    setCharacterDisable(false);
+                    countDown.stop();
+                }
+            }
+        }, 1, 1);
+    }
 
 	public Camera getCamera() {
 		return camera;

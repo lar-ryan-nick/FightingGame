@@ -10,6 +10,7 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.utils.Disableable;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
@@ -31,7 +32,7 @@ import static com.tutorial.game.constants.Constants.WORLD_WIDTH;
  * Created by ryanl on 8/6/2017.
  */
 
-public class Character extends Actor implements Disposable, Serializable {
+public class Character extends Actor implements Disposable, Serializable, Disableable {
 
 	protected String characterImagePath;
 	private transient Body characterBody;
@@ -53,6 +54,7 @@ public class Character extends Actor implements Disposable, Serializable {
 	private transient Timer punchingTimer;
 	private transient Timer flinchTimer;
 	protected boolean needsUpdate;
+	private boolean isDisabled;
 
 	public Character(World world) {
 		super();
@@ -64,6 +66,7 @@ public class Character extends Actor implements Disposable, Serializable {
 		isInAir = false;
 		controller = null;
 		isDead = false;
+		isDisabled = false;
 		isFacingRight = true;
 		needsUpdate = false;
 		currWalkNum = -1;
@@ -122,7 +125,7 @@ public class Character extends Actor implements Disposable, Serializable {
 	}
 
 	public void jump() {
-		if (!isDead && !isInAir && currFlinchNum < 0) {
+		if (!isDisabled && !isDead && !isInAir && currFlinchNum < 0) {
 			setTexture("img/character/character_jump_start.png");
 			characterBody.applyForceToCenter(0, 10000f * characterBody.getMass(), true);
 			isInAir = true;
@@ -133,7 +136,7 @@ public class Character extends Actor implements Disposable, Serializable {
 	}
 
 	public void jab() {
-		if (coolDown <= 0 && !isDead && currPunchNum < 0 && currFlinchNum < 0) {
+		if (!isDisabled && coolDown <= 0 && !isDead && currPunchNum < 0 && currFlinchNum < 0) {
 			currPunchNum = 0;
 			punchingTimer.start();
 		}
@@ -154,7 +157,7 @@ public class Character extends Actor implements Disposable, Serializable {
 	}
 
 	public void setIsMovingLeft(boolean val) {
-		if (!isDead) {
+		if (!isDisabled && !isDead) {
 			if (val) {
 				isMovingRight = false;
 				setFlip(true, false);
@@ -168,7 +171,7 @@ public class Character extends Actor implements Disposable, Serializable {
 	}
 
 	public void setIsMovingRight(boolean val) {
-		if (!isDead) {
+		if (!isDisabled && !isDead) {
 			if (val) {
 				isMovingLeft = false;
 				setFlip(false, false);
@@ -195,7 +198,7 @@ public class Character extends Actor implements Disposable, Serializable {
 	}
 
 	protected void updateWalkingAnim() {
-		if (!isDead) {
+		if (!isDisabled && !isDead) {
 			if (!isInAir && currCrouchNum < 0 && currPunchNum < 0 && currFlinchNum < 0) {
 				if (isMovingLeft || isMovingRight) {
 					setFlip(isMovingLeft, false);
@@ -238,7 +241,7 @@ public class Character extends Actor implements Disposable, Serializable {
 	}
 
 	protected void updatePunchingAnim() {
-		if (!isDead) {
+		if (!isDisabled && !isDead) {
 			if (currPunchNum == 2) {
 				if (isInAir) {
 					setTexture("img/character/character_jump_loop.png");
@@ -376,7 +379,7 @@ public class Character extends Actor implements Disposable, Serializable {
 		if (coolDown > 0) {
 			--coolDown;
 		}
-		if (!isDead) {
+		if (!isDisabled && !isDead) {
 			float xVal = 0, yVal = 0;
 			if (currCrouchNum < 0 && currPunchNum < 0 && currFlinchNum < 0) {
 				if (isMovingLeft) {
@@ -539,4 +542,14 @@ public class Character extends Actor implements Disposable, Serializable {
             ((Disposable) controller).dispose();
         }
 	}
+
+    @Override
+    public void setDisabled(boolean isDis) {
+        isDisabled = isDis;
+    }
+
+    @Override
+    public boolean isDisabled() {
+        return isDisabled;
+    }
 }

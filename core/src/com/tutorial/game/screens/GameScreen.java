@@ -9,7 +9,10 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.tutorial.game.constants.GameState;
 import com.tutorial.game.maps.DefaultMap;
 import com.tutorial.game.maps.Map;
+import com.tutorial.game.overlays.CountDownOverlay;
 import com.tutorial.game.overlays.GameOverOverlay;
+import com.tutorial.game.overlays.Overlay;
+import com.tutorial.game.overlays.WaitingOverlay;
 
 /**
  * Created by ryanwiener on 1/1/18.
@@ -19,7 +22,7 @@ public class GameScreen implements Screen {
 
     private Map map;
 	private Batch batch;
-	private GameOverOverlay gameOverOverlay;
+	private Overlay overlay;
 
 	public Map getMap() {
 	    return map;
@@ -46,18 +49,29 @@ public class GameScreen implements Screen {
 		batch.begin();
 		map.draw(batch);
         batch.end();
-		if (map.getGameState() == GameState.WON || map.getGameState() == GameState.LOST) {
-		    if (gameOverOverlay == null) {
-		        gameOverOverlay = new GameOverOverlay(map.getGameState() == GameState.WON);
+        if (map.getGameState() == GameState.COUNTING) {
+            if (!(overlay instanceof CountDownOverlay)) {
+                overlay = new CountDownOverlay();
             }
-			gameOverOverlay.draw();
+            ((CountDownOverlay) overlay).setCount(map.getCount());
+            overlay.draw();
+        } else if (map.getGameState() == GameState.WAITING) {
+            if (!(overlay instanceof WaitingOverlay)) {
+                overlay = new WaitingOverlay();
+            }
+            overlay.draw();
+        } else if (map.getGameState() == GameState.WON || map.getGameState() == GameState.LOST) {
+		    if (!(overlay instanceof GameOverOverlay)) {
+		        overlay = new GameOverOverlay(map.getGameState() == GameState.WON);
+            }
+			overlay.draw();
 		}
 	}
 
 	@Override
 	public void resize(int width, int height) {
-        if (gameOverOverlay != null) {
-            gameOverOverlay.resize(width, height);
+        if (overlay != null) {
+            overlay.resize(width, height);
         }
 	}
 
@@ -80,8 +94,8 @@ public class GameScreen implements Screen {
 	public void dispose() {
 		map.dispose();
 		batch.dispose();
-		if (gameOverOverlay != null) {
-		    gameOverOverlay.dispose();
+		if (overlay != null) {
+		    overlay.dispose();
         }
 	}
 }
