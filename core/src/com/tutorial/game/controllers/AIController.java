@@ -1,7 +1,5 @@
 package com.tutorial.game.controllers;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
@@ -31,7 +29,7 @@ public class AIController extends Controller {
             for (Body body : bodies) {
                 if (body.getUserData() instanceof Character) {
                     Character character = ((Character) body.getUserData());
-                    if (character.getController() instanceof PlayerController) {
+                    if (character.getController() instanceof LocalPlayerController) {
                         if (!character.getIsDead()) {
                             if (character.getX() > player.getX()) {
                                 player.setFlip(false, false);

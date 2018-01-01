@@ -4,68 +4,67 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Event;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.actions.ColorAction;
 import com.badlogic.gdx.utils.Disposable;
 import com.tutorial.game.characters.Character;
 
-import java.io.PrintWriter;
-import java.util.UUID;
-
 /**
- * Created by ryanl on 9/30/2017.
+ * Created by ryanl on 8/9/2017.
  */
 
-public class OnlinePlayerController extends NetworkController implements PlayerController {
+public class LocalPlayerController extends Controller implements PlayerController {
 
-    private PrintWriter out;
+    public LocalPlayerController() {
+        super();
+    }
 
-    public OnlinePlayerController(Character character, PrintWriter o, UUID uuid) {
-        super(character, uuid);
-        out = o;
+    public LocalPlayerController(Character character) {
+        super();
+        possessCharacter(character);
         ((InputMultiplexer) Gdx.input.getInputProcessor()).addProcessor(this);
+    }
+
+    @Override
+    public void possessCharacter(Character character) {
+        super.possessCharacter(character);
     }
 
     @Override
     public boolean keyDown(int keycode) {
         switch (keycode) {
             case Input.Keys.SPACE:
-                //player.jump();
-                out.println("1");
+                player.jump();
                 return true;
             case Input.Keys.UP:
-                //player.jump();
-                out.println("1");
+                player.jump();
                 return true;
             case Input.Keys.RIGHT:
-                //player.setIsMovingRight(true);
-                out.println("2");
+                player.setIsMovingRight(true);
                 return true;
             case Input.Keys.LEFT:
-                //player.setIsMovingLeft(true);
-                out.println("4");
+                player.setIsMovingLeft(true);
                 return true;
             case Input.Keys.DOWN:
-                //player.setIsCrouching(true);
-                out.println("6");
+                player.setIsCrouching(true);
                 return true;
             case Input.Keys.W:
-                //player.jump();
-                out.println("1");
+                player.jump();
                 return true;
             case Input.Keys.A:
-                //player.setIsMovingLeft(true);
-                out.println("4");
+                player.setIsMovingLeft(true);
                 return true;
             case Input.Keys.D:
-                //player.setIsMovingRight(true);
-                out.println("2");
+                player.setIsMovingRight(true);
                 return true;
             case Input.Keys.S:
-                //player.setIsCrouching(true);
-                out.println("6");
+                player.setIsCrouching(true);
                 return true;
             case Input.Keys.C:
-                //player.jab();
-                out.println("8");
+                player.jab();
                 return true;
             default:
                 return false;
@@ -76,28 +75,22 @@ public class OnlinePlayerController extends NetworkController implements PlayerC
     public boolean keyUp(int keycode) {
         switch (keycode) {
             case Input.Keys.RIGHT:
-                //player.setIsMovingRight(false);
-                out.println("3");
+                player.setIsMovingRight(false);
                 return true;
             case Input.Keys.LEFT:
-                //player.setIsMovingLeft(false);
-                out.println("5");
+                player.setIsMovingLeft(false);
                 return true;
             case Input.Keys.DOWN:
-                //player.setIsCrouching(false);
-                out.println("7");
+                player.setIsCrouching(false);
                 return true;
             case Input.Keys.D:
-                //player.setIsMovingRight(false);
-                out.println("3");
+                player.setIsMovingRight(false);
                 return true;
             case Input.Keys.A:
-                //player.setIsMovingLeft(false);
-                out.println("5");
+                player.setIsMovingLeft(false);
                 return true;
             case Input.Keys.S:
-                //player.setIsCrouching(false);
-                out.println("7");
+                player.setIsCrouching(false);
                 return true;
             default:
                 return false;

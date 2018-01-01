@@ -1,12 +1,15 @@
 package com.tutorial.game;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputMultiplexer;
 import com.tutorial.game.screens.MainScreen;
 
 public class TutorialGame extends Game {
 	
 	@Override
 	public void create() {
+        Gdx.input.setInputProcessor(new InputMultiplexer());
 		setScreen(new MainScreen());
 	}
 

@@ -64,7 +64,7 @@ public class Connection implements Disposable {
 			@Override
 			public void run() {
 				if (serverGame != null) {
-					out.println(serverGame);
+                    out.println(serverGame);
 					if (serverGame.getIsDisconnected()) {
 						dispose();
 						outputTimer.stop();

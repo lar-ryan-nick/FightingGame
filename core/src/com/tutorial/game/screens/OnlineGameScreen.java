@@ -2,6 +2,7 @@ package com.tutorial.game.screens;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -17,6 +18,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.Array;
 import com.tutorial.game.characters.Character;
 import com.tutorial.game.characters.ClientCharacter;
+import com.tutorial.game.constants.GameState;
 import com.tutorial.game.controllers.NetworkController;
 import com.tutorial.game.controllers.OnlinePlayerController;
 import com.tutorial.game.maps.DefaultMap;
@@ -25,6 +27,7 @@ import com.tutorial.game.maps.Map;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -39,18 +42,16 @@ import static com.tutorial.game.constants.Constants.WORLD_WIDTH;
  * Created by ryanwiener on 9/27/17.
  */
 
-public class OnlineGameScreen implements Screen {
+public class OnlineGameScreen extends GameScreen {
 
 	private Socket socket;
 	private PrintWriter out;
 	private BufferedReader in;
-	private Map map;
-	private SpriteBatch batch;
 
 	public void listenServer() {
 		try{
 			//socket = new Socket("76.90.139.212", 8000);
-			socket = new Socket("192.168.1.16", 8000);
+			socket = new Socket("localhost", 8000);
 			out = new PrintWriter(socket.getOutputStream(), true);
 			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		} catch (UnknownHostException e) {
@@ -66,27 +67,22 @@ public class OnlineGameScreen implements Screen {
 	@Override
 	public void show() {
 		listenServer();
-		map = new DefaultMap();
-		batch = new SpriteBatch();
-		batch.setProjectionMatrix(map.getCamera().combined);
+		super.show();
 		String id = null;
 		try {
-			while ((id = in.readLine()) == null) { System.out.println(id); }
+			while ((id = in.readLine()) == null) {}
 		} catch (IOException e) {
-			System.err.println("Couldn't read id");
-			System.exit(-1);
+            System.err.println("Couldn't read id");
+            System.exit(-1);
 		}
-		ClientCharacter player = new ClientCharacter(map.getWorld());
+		ClientCharacter player = new ClientCharacter(getMap().getWorld());
 		player.setPosition(player.getWidth(), 0);
-		map.addCharacter(player);
+		getMap().addCharacter(player);
 		OnlinePlayerController controller = new OnlinePlayerController(player, out, UUID.fromString(id));
-		Gdx.input.setInputProcessor(controller);
 	}
 
 	@Override
 	public void render(float delta) {
-		Gdx.gl.glClearColor(0, 0, 0, 1);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		try {
 			String line = null;
 			while (in.ready()) {
@@ -95,42 +91,37 @@ public class OnlineGameScreen implements Screen {
 			}
 			//Gdx.app.log("Using", line);
 			if (line != null) {
-				if (line.equals("Disconnected")) {
-					((Game) Gdx.app.getApplicationListener()).setScreen(new MainScreen());
-					this.dispose();
-					return;
-				}
 				HashMap<String, String> params = parseString(line);
 				if (params != null) {
-					for (int i = 0; i < Integer.parseInt(params.get("numPlayers")); ++i) {
-						Array<Character> characters = map.getCharacters();
-						boolean found = false;
-						for (int j = 0; j < characters.size; ++j) {
-							if (characters.get(j).getController() instanceof NetworkController) {
-								if (((NetworkController) (characters.get(j).getController())).getUUID().equals(UUID.fromString(params.get("uuid" + i)))) {
-									characters.get(j).updateFromMap(params, i);
-									found = true;
-									break;
-								}
-							}
-						}
-						if (!found) {
-							ClientCharacter player = new ClientCharacter(map.getWorld());
-							NetworkController controller = new NetworkController(player, UUID.fromString(params.get("uuid" + i)));
-							player.setPosition(player.getWidth(), 0);
-							map.addCharacter(player);
-						}
-					}
+				    getMap().setGameState(GameState.valueOf(params.get("gameState")));
+				    if (getMap().getGameState() != GameState.TERMINATED) {
+                        for (int i = 0; i < Integer.parseInt(params.get("numPlayers")); ++i) {
+                            Array<Character> characters = getMap().getCharacters();
+                            boolean found = false;
+                            for (int j = 0; j < characters.size; ++j) {
+                                if (characters.get(j).getController() instanceof NetworkController) {
+                                    if (((NetworkController) (characters.get(j).getController())).getUUID().equals(UUID.fromString(params.get("uuid" + i)))) {
+                                        characters.get(j).updateFromMap(params, i);
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (!found) {
+                                ClientCharacter player = new ClientCharacter(getMap().getWorld());
+                                NetworkController controller = new NetworkController(player, UUID.fromString(params.get("uuid" + i)));
+                                player.setPosition(player.getWidth(), 0);
+                                getMap().addCharacter(player);
+                            }
+                        }
+                    }
 				}
 			}
 		} catch (IOException e) {
 			System.err.println("Can't read");
 			System.exit(1);
 		}
-		map.act(delta);
-		batch.begin();
-		map.draw(batch);
-		batch.end();
+        super.render(delta);
 	}
 
 	public HashMap<String, String> parseString(String s) {
@@ -149,29 +140,8 @@ public class OnlineGameScreen implements Screen {
 	}
 
 	@Override
-	public void resize(int width, int height) {
-
-	}
-
-	@Override
-	public void pause() {
-
-	}
-
-	@Override
-	public void resume() {
-
-	}
-
-	@Override
-	public void hide() {
-
-	}
-
-	@Override
 	public void dispose() {
-		map.dispose();
-		batch.dispose();
+	    super.dispose();
 		try {
 			out.println("disconnecting");
 			socket.close();

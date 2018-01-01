@@ -23,6 +23,7 @@ import com.tutorial.game.characters.Character;
 import com.tutorial.game.maps.DefaultMap;
 import com.tutorial.game.maps.Map;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 import static com.tutorial.game.constants.Constants.CATEGORY_SCENERY;
@@ -43,6 +44,10 @@ public class ServerGame implements Disposable {
         isDisconnected = false;
         map = new DefaultMap();
         numPlayers = 0;
+    }
+
+    public Map getMap() {
+        return map;
     }
 
     public void addPlayer(UUID id) {
@@ -98,6 +103,7 @@ public class ServerGame implements Disposable {
 
     public void disconnect() {
         isDisconnected = true;
+        map.terminate();
     }
 
     public boolean getIsDisconnected() {
@@ -115,11 +121,9 @@ public class ServerGame implements Disposable {
 
     @Override
     public String toString() {
-        if (isDisconnected) {
-            return "Disconnected";
-        }
+        String serialization = "gameState=" + map.getGameState().toString();
         Array<Character> characters = map.getCharacters();
-        String serialization = "numPlayers=" + characters.size;
+        serialization += "&numPlayers=" + characters.size;
         for (int i = 0; i < characters.size; ++i) {
             serialization += "&" + characters.get(i).serialize(i);
         }

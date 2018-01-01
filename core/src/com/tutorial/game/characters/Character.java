@@ -18,6 +18,7 @@ import com.tutorial.game.controllers.AIController;
 import com.tutorial.game.controllers.Controller;
 import com.tutorial.game.controllers.NetworkController;
 
+import java.io.Serializable;
 import java.util.Map;
 
 import static com.tutorial.game.constants.Constants.CATEGORY_ARM;
@@ -30,12 +31,12 @@ import static com.tutorial.game.constants.Constants.WORLD_WIDTH;
  * Created by ryanl on 8/6/2017.
  */
 
-public class Character extends Actor implements Disposable {
+public class Character extends Actor implements Disposable, Serializable {
 
 	protected String characterImagePath;
-	private Body characterBody;
+	private transient Body characterBody;
 	protected int health;
-	private Controller controller;
+	private transient Controller controller;
 	private boolean isMovingLeft;
 	private boolean isMovingRight;
 	private boolean isFacingRight;
@@ -46,11 +47,11 @@ public class Character extends Actor implements Disposable {
 	private int currPunchNum;
 	private int currFlinchNum;
 	private int coolDown;
-	private Timer walkingTimer;
-	private Timer crouchingTimer;
-	private Timer standingTimer;
-	private Timer punchingTimer;
-	private Timer flinchTimer;
+	private transient Timer walkingTimer;
+	private transient Timer crouchingTimer;
+	private transient Timer standingTimer;
+	private transient Timer punchingTimer;
+	private transient Timer flinchTimer;
 	protected boolean needsUpdate;
 
 	public Character(World world) {
@@ -534,5 +535,8 @@ public class Character extends Actor implements Disposable {
 			characterBody.getWorld().destroyBody(characterBody);
 		}
 		*/
+		if (controller instanceof Disposable) {
+            ((Disposable) controller).dispose();
+        }
 	}
 }

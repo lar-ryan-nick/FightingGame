@@ -2,6 +2,7 @@ package com.tutorial.game.screens;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -41,7 +42,7 @@ public class MainScreen implements Screen {
         screen.setSize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         */
         stage = new Stage();
-        Gdx.input.setInputProcessor(stage);
+        ((InputMultiplexer) Gdx.input.getInputProcessor()).addProcessor(stage);
         //TextureRegion textureRegion = new TextureRegion(, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         backgroundImage = new Image(new Texture("img/MainBackgroundImage.jpg"));
         backgroundImage.setBounds(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -113,6 +114,7 @@ public class MainScreen implements Screen {
         window.dispose();
         screen.getTexture().dispose();
         */
+        ((InputMultiplexer) Gdx.input.getInputProcessor()).removeProcessor(stage);
         stage.dispose();
         impactWhite48.dispose();
     }
