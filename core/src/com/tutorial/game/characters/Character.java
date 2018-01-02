@@ -60,7 +60,6 @@ public class Character extends Actor implements Disposable, Serializable, Disabl
 		super();
 		setSize(17 * CHARACTER_SCALE, 42 * CHARACTER_SCALE);
 		controller = null;
-		characterImagePath = "img/character/character_idle.png";
 		isMovingLeft = false;
 		isMovingRight = false;
 		isInAir = false;
@@ -121,12 +120,13 @@ public class Character extends Actor implements Disposable, Serializable, Disabl
 		characterBody = world.createBody(box);
 		characterBody.setUserData(this);
 		health = 100;
-		setTexture("img/character/character_idle.png");
+        characterImagePath = "";
+		setTexture("character_idle.png");
 	}
 
 	public void jump() {
 		if (!isDisabled && !isDead && !isInAir && currFlinchNum < 0) {
-			setTexture("img/character/character_jump_start.png");
+			setTexture("character_jump_start.png");
 			characterBody.applyForceToCenter(0, 10000f * characterBody.getMass(), true);
 			isInAir = true;
 			currCrouchNum = -1;
@@ -202,10 +202,10 @@ public class Character extends Actor implements Disposable, Serializable, Disabl
 			if (!isInAir && currCrouchNum < 0 && currPunchNum < 0 && currFlinchNum < 0) {
 				if (isMovingLeft || isMovingRight) {
 					setFlip(isMovingLeft, false);
-					setTexture("img/character/character_walk" + (currWalkNum + 1) + ".png");
+					setTexture("character_walk" + (currWalkNum + 1) + ".png");
 					currWalkNum = (currWalkNum + 1) % 6;
 				} else {
-					setTexture("img/character/character_idle.png");
+					setTexture("character_idle.png");
 					currWalkNum = -1;
 					walkingTimer.stop();
 				}
@@ -217,7 +217,7 @@ public class Character extends Actor implements Disposable, Serializable, Disabl
 		if (!isDead) {
 			if (!isInAir && getIsCrouching() && !getIsPunching()) {
 				if (currCrouchNum <= 2) {
-					setTexture("img/character/character_crouch" + (currCrouchNum + 1) + ".png");
+					setTexture("character_crouch" + (currCrouchNum + 1) + ".png");
 					++currCrouchNum;
 				}
 				if (currCrouchNum > 2) {
@@ -231,10 +231,10 @@ public class Character extends Actor implements Disposable, Serializable, Disabl
 	protected void updateStandingAnim() {
 		if (!isDead) {
 			if (!isInAir && currCrouchNum >= 0 && currPunchNum < 0) {
-				setTexture("img/character/character_crouch" + (currCrouchNum + 1) + ".png");
+				setTexture("character_crouch" + (currCrouchNum + 1) + ".png");
 				--currCrouchNum;
 			} else if (currPunchNum < 0 && !isInAir) {
-				setTexture("img/character/character_idle.png");
+				setTexture("character_idle.png");
 				standingTimer.stop();
 			}
 		}
@@ -244,24 +244,24 @@ public class Character extends Actor implements Disposable, Serializable, Disabl
 		if (!isDisabled && !isDead) {
 			if (currPunchNum == 2) {
 				if (isInAir) {
-					setTexture("img/character/character_jump_loop.png");
+					setTexture("character_jump_loop.png");
 				} else if (currCrouchNum >= 0) {
-					setTexture("img/character/character_crouch" + (currCrouchNum + 1) + ".png");
+					setTexture("character_crouch" + (currCrouchNum + 1) + ".png");
 				} else {
-					setTexture("img/character/character_idle.png");
+					setTexture("character_idle.png");
 				}
 				coolDown = 10;
 				currPunchNum = -1;
 				punchingTimer.stop();
 			} else if (currPunchNum >= 0) {
 				if (isInAir) {
-					setTexture("img/character/character_jumping_jab" + (currPunchNum + 1) + ".png");
+					setTexture("character_jumping_jab" + (currPunchNum + 1) + ".png");
 					++currPunchNum;
 				} else if (currCrouchNum >= 0) {
-					setTexture("img/character/character_crouching_jab" + (currPunchNum + 1) + ".png");
+					setTexture("character_crouching_jab" + (currPunchNum + 1) + ".png");
 					++currPunchNum;
 				} else {
-					setTexture("img/character/character_standing_jab" + (currPunchNum + 1) + ".png");
+					setTexture("character_standing_jab" + (currPunchNum + 1) + ".png");
 					++currPunchNum;
 				}
 			} else {
@@ -274,24 +274,24 @@ public class Character extends Actor implements Disposable, Serializable, Disabl
 		if (!isDead) {
 			if (currFlinchNum == 2) {
 				if (isInAir) {
-					//setTexture("img/character/character_jump_loop.png");
+					//setTexture("character_jump_loop.png");
 					return;
 				} else if (currCrouchNum >= 0) {
-					setTexture("img/character/character_crouch" + (currCrouchNum + 1) + ".png");
+					setTexture("character_crouch" + (currCrouchNum + 1) + ".png");
 				} else {
-					setTexture("img/character/character_idle.png");
+					setTexture("character_idle.png");
 				}
 				currFlinchNum = -1;
 				flinchTimer.stop();
 			} else if (currFlinchNum >= 0) {
 				if (isInAir) {
-					setTexture("img/character/character_jumping_damage" + (currFlinchNum + 1) + ".png");
+					setTexture("character_jumping_damage" + (currFlinchNum + 1) + ".png");
 					++currFlinchNum;
 				} else if (currCrouchNum >= 0) {
-					setTexture("img/character/character_crouching_damage" + (currFlinchNum + 1) + ".png");
+					setTexture("character_crouching_damage" + (currFlinchNum + 1) + ".png");
 					++currFlinchNum;
 				} else {
-					setTexture("img/character/character_standing_damage_high" + (currFlinchNum + 1) + ".png");
+					setTexture("character_standing_damage_high" + (currFlinchNum + 1) + ".png");
 					++currFlinchNum;
 				}
 			} else {
@@ -400,13 +400,13 @@ public class Character extends Actor implements Disposable, Serializable, Disabl
 					if (characterBody.getLinearVelocity().y < 1) {
 						if (characterBody.getPosition().y < getHeight() / 2 + 3 * CHARACTER_SCALE) {
 							isInAir = false;
-							setTexture("img/character/character_idle.png");
+							setTexture("character_idle.png");
 						} else {
-							setTexture("img/character/character_jump_end.png");
+							setTexture("character_jump_end.png");
 						}
 					}
 				} else if (currPunchNum < 0 && currFlinchNum < 0) {
-					setTexture("img/character/character_jump_loop.png");
+					setTexture("character_jump_loop.png");
 				}
 			}
 			characterBody.applyForceToCenter(xVal, yVal, true);
@@ -439,8 +439,15 @@ public class Character extends Actor implements Disposable, Serializable, Disabl
 	}
 
 	protected void setTexture(String internalFilePath) {
-		if (!characterImagePath.equals(internalFilePath)) {
-			characterImagePath = internalFilePath;
+	    String path = "img/characters/";
+		//if (getController() instanceof PlayerController) {
+			path += "brownMan/";
+		//} else {
+		//    path += "blueNinja/";
+		//}
+        path += internalFilePath;
+		if (!characterImagePath.equals(path)) {
+			characterImagePath = path;
 			needsUpdate = true;
 		}
 	}
@@ -459,7 +466,8 @@ public class Character extends Actor implements Disposable, Serializable, Disabl
 		if (getController() instanceof NetworkController) {
 			uuid = "uuid" + i + "=" + ((NetworkController) getController()).getUUID().toString() + "&";
 		}
-		return uuid + "x" + i + "=" + getX() + "&y" + i + "=" + getY() + "&width" + i + "=" + getWidth() + "&velX" + i + "=" + characterBody.getLinearVelocity().x + "&velY" + i + "=" + characterBody.getLinearVelocity().y + "&facingRight" + i + "=" + isFacingRight + "&health" + i + "=" + health + "&imageName" + i + "=" + characterImagePath;
+		String[] files = characterImagePath.split("/");
+		return uuid + "x" + i + "=" + getX() + "&y" + i + "=" + getY() + "&width" + i + "=" + getWidth() + "&velX" + i + "=" + characterBody.getLinearVelocity().x + "&velY" + i + "=" + characterBody.getLinearVelocity().y + "&facingRight" + i + "=" + isFacingRight + "&health" + i + "=" + health + "&imageName" + i + "=" + files[files.length - 1];
 	}
 
 	public void updateFromMap(Map<String, String> vals, int index) {
@@ -498,7 +506,7 @@ public class Character extends Actor implements Disposable, Serializable, Disabl
 		if (health <= 0) {
 			health = 0;
 			isDead = true;
-			setTexture("img/character/character_ko.png");
+			setTexture("character_ko.png");
 			walkingTimer.stop();
 			crouchingTimer.stop();
 			standingTimer.stop();
