@@ -39,11 +39,11 @@ public class ClientCharacter extends Character {
 
 	@Override
 	protected void setTexture(String internalFilePath) {
-	    super.setTexture(internalFilePath);
-	    if (characterImage != null) {
-            characterImage.getTexture().dispose();
-            characterImage.setTexture(new Texture(characterImagePath));
-        }
+		super.setTexture(internalFilePath);
+		if (characterImage != null) {
+			characterImage.getTexture().dispose();
+			characterImage.setTexture(new Texture(characterImagePath));
+		}
 	}
 
 	@Override

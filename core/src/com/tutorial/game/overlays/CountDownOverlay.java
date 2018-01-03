@@ -24,6 +24,10 @@ public class CountDownOverlay extends Overlay {
     }
 
     public void setCount(int count) {
-        title.setText(Integer.toString(count));
+        if (count == 0) {
+            title.setText("Fight!");
+        } else {
+            title.setText(Integer.toString(count));
+        }
     }
 }

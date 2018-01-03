@@ -42,8 +42,7 @@ public class Server implements Runnable, Disposable {
 				}
 				System.out.println(serverGames.size);
 			} catch (IOException e) {
-				System.out.println("Accept failed");
-				System.exit(1);
+				System.err.println("Accept failed");
 			}
 		}
 	}
@@ -63,7 +62,6 @@ public class Server implements Runnable, Disposable {
 			serverSocket.close();
 		} catch (IOException e) {
 			System.err.println("Unable to close server socket");
-			System.exit(-1);
 		}
 	}
 }

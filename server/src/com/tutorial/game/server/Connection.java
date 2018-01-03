@@ -17,8 +17,10 @@ public class Connection implements Disposable {
 	private Socket client;
 	private ServerGame serverGame;
 	private UUID id;
-	BufferedReader in;
-	PrintWriter out;
+	private BufferedReader in;
+	private PrintWriter out;
+	private Timer outputTimer;
+	private Thread inputThread;
 
 	Connection(Socket cli) {
 		client = cli;
@@ -31,9 +33,9 @@ public class Connection implements Disposable {
 			out.println(id);
 		} catch (IOException e) {
 			System.err.println("in or out failed");
-			System.exit(-1);
+			dispose();
 		}
-		Thread inputThread = new Thread(new Runnable() {
+		inputThread = new Thread(new Runnable() {
 			@Override
 			public void run() {
 				while(true) {
@@ -42,10 +44,7 @@ public class Connection implements Disposable {
 						while ((line = in.readLine()) != null) {
 							Gdx.app.log("Received", line);
 							if (line.equals("disconnecting")) {
-								if (serverGame != null) {
-									serverGame.disconnect();
-								}
-								Thread.currentThread().interrupt();
+							    dispose();
 								return;
 							} else if (serverGame != null) {
 								serverGame.sendInput(line, id);
@@ -53,13 +52,13 @@ public class Connection implements Disposable {
 						}
 					} catch (IOException e) {
 						System.err.println("Read failed");
-						System.exit(1);
+						dispose();
 					}
 				}
 			}
 		});
 		inputThread.start();
-		final Timer outputTimer = new Timer();
+		outputTimer = new Timer();
 		outputTimer.scheduleTask(new Timer.Task() {
 			@Override
 			public void run() {
@@ -67,7 +66,6 @@ public class Connection implements Disposable {
                     out.println(serverGame);
 					if (serverGame.getIsDisconnected()) {
 						dispose();
-						outputTimer.stop();
 						return;
 					}
 				}
@@ -89,13 +87,14 @@ public class Connection implements Disposable {
 	@Override
 	public void dispose() {
         serverGame.removePlayer(id);
+        inputThread.interrupt();
+        outputTimer.stop();
 		try {
 			in.close();
 			out.close();
 			client.close();
 		} catch (IOException e) {
 			System.err.println("Closing connection failed");
-			System.exit(1);
 		}
 	}
 }

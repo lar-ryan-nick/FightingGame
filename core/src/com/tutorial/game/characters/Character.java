@@ -18,6 +18,7 @@ import com.badlogic.gdx.utils.Timer;
 import com.tutorial.game.controllers.AIController;
 import com.tutorial.game.controllers.Controller;
 import com.tutorial.game.controllers.NetworkController;
+import com.tutorial.game.controllers.PlayerController;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -120,7 +121,7 @@ public class Character extends Actor implements Disposable, Serializable, Disabl
 		characterBody = world.createBody(box);
 		characterBody.setUserData(this);
 		health = 100;
-        characterImagePath = "";
+		characterImagePath = "";
 		setTexture("character_idle.png");
 	}
 
@@ -185,7 +186,7 @@ public class Character extends Actor implements Disposable, Serializable, Disabl
 	}
 
 	public void setIsCrouching(boolean val) {
-		if (!isDead) {
+		if (!isDisabled && !isDead) {
 			if (val) {
 				currCrouchNum = 0;
 				standingTimer.stop();
@@ -214,7 +215,7 @@ public class Character extends Actor implements Disposable, Serializable, Disabl
 	}
 
 	protected void updateCrouchingAnim() {
-		if (!isDead) {
+		if (!isDisabled && !isDead) {
 			if (!isInAir && getIsCrouching() && !getIsPunching()) {
 				if (currCrouchNum <= 2) {
 					setTexture("character_crouch" + (currCrouchNum + 1) + ".png");
@@ -229,7 +230,7 @@ public class Character extends Actor implements Disposable, Serializable, Disabl
 	}
 
 	protected void updateStandingAnim() {
-		if (!isDead) {
+		if (!isDisabled && !isDead) {
 			if (!isInAir && currCrouchNum >= 0 && currPunchNum < 0) {
 				setTexture("character_crouch" + (currCrouchNum + 1) + ".png");
 				--currCrouchNum;
@@ -301,7 +302,7 @@ public class Character extends Actor implements Disposable, Serializable, Disabl
 	}
 
 	private void updateCharacterSize() {
-        needsUpdate = false;
+		needsUpdate = false;
 		TextureData textureData = TextureData.Factory.loadFromFile(Gdx.files.internal(characterImagePath), true);
 		float widthDifference = 0;
 		if (!isFacingRight) {
@@ -314,12 +315,12 @@ public class Character extends Actor implements Disposable, Serializable, Disabl
 		BodyDef box = new BodyDef();
 		box.type = BodyDef.BodyType.DynamicBody;
 		// make sure foot placement is constant for different animations
-        box.position.set(getX() + getWidth() / 2 - widthDifference, getY() + getHeight() / 2);
+		box.position.set(getX() + getWidth() / 2 - widthDifference, getY() + getHeight() / 2);
 		// make sure that character didn't fall of the map
-		if (box.position.x < 0) {
-			box.position.set(0, box.position.y);
-		} else if (box.position.x > WORLD_WIDTH - getWidth()) {
-			box.position.set(WORLD_WIDTH - getWidth(), box.position.y);
+		if (box.position.x < getWidth() / 2) {
+			box.position.set(getWidth() / 2, box.position.y);
+		} else if (box.position.x > WORLD_WIDTH - getWidth() / 2) {
+			box.position.set(WORLD_WIDTH - getWidth() / 2, box.position.y);
 		}
 		box.fixedRotation = true;
 		box.linearVelocity.set(velocity);
@@ -436,21 +437,27 @@ public class Character extends Actor implements Disposable, Serializable, Disabl
 
 	public void setController(Controller control) {
 		controller = control;
+		refreshTexture();
 	}
 
 	protected void setTexture(String internalFilePath) {
-	    String path = "img/characters/";
-		//if (getController() instanceof PlayerController) {
+		String path = "img/characters/";
+		if (getController() instanceof PlayerController) {
 			path += "brownMan/";
-		//} else {
-		//    path += "blueNinja/";
-		//}
-        path += internalFilePath;
+		} else {
+			path += "blueNinja/";
+		}
+		path += internalFilePath;
 		if (!characterImagePath.equals(path)) {
 			characterImagePath = path;
 			needsUpdate = true;
 		}
 	}
+
+	public void refreshTexture() {
+        String[] files = characterImagePath.split("/");
+	    setTexture(files[files.length - 1]);
+    }
 
 	@Override
 	public String toString() {
@@ -458,7 +465,7 @@ public class Character extends Actor implements Disposable, Serializable, Disabl
 		if (getController() instanceof NetworkController) {
 			uuid = "uuid=" + ((NetworkController) getController()).getUUID().toString() + "&";
 		}
-		return uuid + "x=" + getX() + "&y=" + getY() + "&velX=" + characterBody.getLinearVelocity().x + "&velY=" + characterBody.getLinearVelocity().y + "&facingRight=" + isFacingRight + "&health=" + health + "&imageName=" + characterImagePath;
+		return uuid + "x=" + getX() + "&y=" + getY() + "&velX=" + characterBody.getLinearVelocity().x + "&velY=" + characterBody.getLinearVelocity().y + "&facingRight=" + isFacingRight + "&health=" + health + "&imagePath=" + characterImagePath;
 	}
 
 	public String serialize(int i) {
@@ -481,22 +488,7 @@ public class Character extends Actor implements Disposable, Serializable, Disabl
 			setTexture(vals.get("imageName" + index));
 		}
 	}
-/*
-	public HashMap<String, String> parseString(String s) {
-		HashMap<String, String> result = new HashMap<String, String>();
-		String[] params = s.split("&");
-		for (int i = 0; i < params.length; ++i) {
-			String[] keyVal = params[i].split("=");
-			if (keyVal.length > 1) {
-				result.put(keyVal[0], keyVal[1]);
-			}
-		}
-		if (result.isEmpty()) {
-			return null;
-		}
-		return result;
-	}
-*/
+
 	public boolean isFacingRight() {
 		return isFacingRight;
 	}
@@ -541,23 +533,21 @@ public class Character extends Actor implements Disposable, Serializable, Disabl
 
 	@Override
 	public void dispose() {
-		/*
 		if (!characterBody.getWorld().isLocked()) {
 			characterBody.getWorld().destroyBody(characterBody);
 		}
-		*/
 		if (controller instanceof Disposable) {
-            ((Disposable) controller).dispose();
-        }
+			((Disposable) controller).dispose();
+		}
 	}
 
-    @Override
-    public void setDisabled(boolean isDis) {
-        isDisabled = isDis;
-    }
+	@Override
+	public void setDisabled(boolean isDis) {
+		isDisabled = isDis;
+	}
 
-    @Override
-    public boolean isDisabled() {
-        return isDisabled;
-    }
+	@Override
+	public boolean isDisabled() {
+		return isDisabled;
+	}
 }

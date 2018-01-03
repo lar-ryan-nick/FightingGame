@@ -23,14 +23,8 @@ public class LocalPlayerController extends Controller implements PlayerControlle
     }
 
     public LocalPlayerController(Character character) {
-        super();
-        possessCharacter(character);
+        super(character);
         ((InputMultiplexer) Gdx.input.getInputProcessor()).addProcessor(this);
-    }
-
-    @Override
-    public void possessCharacter(Character character) {
-        super.possessCharacter(character);
     }
 
     @Override

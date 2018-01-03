@@ -138,19 +138,24 @@ public abstract class Map {
         }
 	}
 
+	public void resize(int width, int height) {
+	    if (Gdx.graphics.getHeight() != 0) {
+			if (Gdx.graphics.getWidth() / Gdx.graphics.getHeight() < 16f / 9) {
+				camera.zoom = WORLD_WIDTH / Gdx.graphics.getWidth();
+			} else {
+				camera.zoom = WORLD_HEIGHT / Gdx.graphics.getHeight();
+			}
+		}
+		camera.position.x = WORLD_WIDTH / 2;
+		camera.position.y = WORLD_HEIGHT / 2;
+		camera.update();
+    }
+
 	public void draw(Batch batch) {
 		//renderer.render(world, camera.combined); uncommenting this line will block out character sprites only uncomment for debugging box2D
 		for (int i = 0; i < characters.size; ++i) {
 			characters.get(i).draw(batch, 1);
 		}
-	}
-
-	public void dispose() {
-		for (int i = 0; i < characters.size; ++i) {
-		    characters.get(i).dispose();
-		}
-		//renderer.dispose();
-		world.dispose();
 	}
 
 	public int getCount() {
@@ -178,6 +183,13 @@ public abstract class Map {
         }
 	}
 
+	public void removeCharacter(Character character) {
+	    world.destroyBody(character.getCharacterBody());
+        int index = characters.indexOf(character, false);
+        characters.get(index).dispose();
+        characters.removeIndex(index);
+    }
+
 	public void beginGame() {
 	    gameState = GameState.COUNTING;
         characters.get(0).setPosition(characters.get(0).getWidth(), 0);
@@ -192,9 +204,11 @@ public abstract class Map {
             public void run() {
                 count--;
                 if (count < 1) {
-                    gameState = GameState.PLAYING;
                     setCharacterDisable(false);
-                    countDown.stop();
+                    if (count < 0) {
+                        gameState = GameState.PLAYING;
+                        countDown.stop();
+                    }
                 }
             }
         }, 1, 1);
@@ -202,5 +216,13 @@ public abstract class Map {
 
 	public Camera getCamera() {
 		return camera;
+	}
+
+	public void dispose() {
+		for (int i = 0; i < characters.size; ++i) {
+		    characters.get(i).dispose();
+		}
+		//renderer.dispose();
+		world.dispose();
 	}
 }

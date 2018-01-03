@@ -4,8 +4,10 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.tutorial.game.constants.Constants;
 import com.tutorial.game.constants.GameState;
 import com.tutorial.game.maps.DefaultMap;
 import com.tutorial.game.maps.Map;
@@ -23,6 +25,12 @@ public class GameScreen implements Screen {
     private Map map;
 	private Batch batch;
 	private Overlay overlay;
+	final private Texture backgroundTexture;
+
+	public GameScreen() {
+	    super();
+	    backgroundTexture = new Texture("img/GameFloorImage.jpg");
+    }
 
 	public Map getMap() {
 	    return map;
@@ -46,8 +54,22 @@ public class GameScreen implements Screen {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		map.act(delta);
+        batch.setProjectionMatrix(map.getCamera().combined);
 		batch.begin();
 		map.draw(batch);
+		if (Gdx.graphics.getWidth() / Gdx.graphics.getHeight() < 16f / 9) {
+		    float height = Gdx.graphics.getHeight() / Gdx.graphics.getWidth() * Constants.WORLD_WIDTH;
+		    float margin = (height - Constants.WORLD_HEIGHT) / 2;
+		    Gdx.app.log("horizontal", "" + margin);
+            batch.draw(backgroundTexture, 0, -margin, Constants.WORLD_WIDTH, margin);
+            batch.draw(backgroundTexture, 0, Constants.WORLD_HEIGHT, Constants.WORLD_WIDTH, margin);
+        } else {
+		    float width = Gdx.graphics.getWidth() / Gdx.graphics.getHeight() * Constants.WORLD_HEIGHT;
+		    float margin = (width - Constants.WORLD_WIDTH) / 2;
+            Gdx.app.log("vertical", "" + margin);
+            batch.draw(backgroundTexture, -margin, 0, margin, Constants.WORLD_HEIGHT);
+            batch.draw(backgroundTexture, Constants.WORLD_WIDTH, 0, margin, Constants.WORLD_HEIGHT);
+        }
         batch.end();
         if (map.getGameState() == GameState.COUNTING) {
             if (!(overlay instanceof CountDownOverlay)) {
@@ -73,6 +95,7 @@ public class GameScreen implements Screen {
         if (overlay != null) {
             overlay.resize(width, height);
         }
+        map.resize(width, height);
 	}
 
 	@Override
@@ -97,5 +120,6 @@ public class GameScreen implements Screen {
 		if (overlay != null) {
 		    overlay.dispose();
         }
+        backgroundTexture.dispose();
 	}
 }
