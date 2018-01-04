@@ -48,6 +48,8 @@ public abstract class Map {
 		cam.position.x = WORLD_WIDTH / 2;
 		cam.position.y = WORLD_HEIGHT / 2;
 		*/
+		resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		/*
 		if (Gdx.graphics.getHeight() != 0) {
 			if (Gdx.graphics.getWidth() / Gdx.graphics.getHeight() < 16f / 9) {
 				camera.zoom = WORLD_WIDTH / Gdx.graphics.getWidth();
@@ -58,6 +60,7 @@ public abstract class Map {
 		camera.position.x = WORLD_WIDTH / 2;
 		camera.position.y = WORLD_HEIGHT / 2;
 		camera.update();
+		*/
 		getWorld().setContactListener(new ContactListener() {
 			@Override
 			public void beginContact(Contact contact) {
@@ -139,15 +142,19 @@ public abstract class Map {
 	}
 
 	public void resize(int width, int height) {
-	    if (Gdx.graphics.getHeight() != 0) {
-			if (Gdx.graphics.getWidth() / Gdx.graphics.getHeight() < 16f / 9) {
-				camera.zoom = WORLD_WIDTH / Gdx.graphics.getWidth();
+	    if (width != 0 && height != 0) {
+			if ((float)width / height < 16f / 9) {
+				//camera.zoom = WORLD_WIDTH / width;
+                camera.viewportWidth = WORLD_WIDTH;
+                camera.viewportHeight = height * WORLD_WIDTH / width;
 			} else {
-				camera.zoom = WORLD_HEIGHT / Gdx.graphics.getHeight();
+				//camera.zoom = WORLD_HEIGHT / height;
+                camera.viewportHeight = WORLD_HEIGHT;
+                camera.viewportWidth = width * WORLD_HEIGHT / height;
 			}
 		}
-		camera.position.x = WORLD_WIDTH / 2;
-		camera.position.y = WORLD_HEIGHT / 2;
+        camera.position.x = WORLD_WIDTH / 2;
+        camera.position.y = WORLD_HEIGHT / 2;
 		camera.update();
     }
 

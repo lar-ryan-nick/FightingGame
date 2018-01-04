@@ -40,6 +40,7 @@ public class GameScreen implements Screen {
 	public void show() {
 		map = new DefaultMap();
 		batch = new SpriteBatch();
+        //batch.setTransformMatrix(map.getCamera().view);
 		batch.setProjectionMatrix(map.getCamera().combined);
 	}
 
@@ -54,36 +55,42 @@ public class GameScreen implements Screen {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		map.act(delta);
-        batch.setProjectionMatrix(map.getCamera().combined);
 		batch.begin();
 		map.draw(batch);
-		if (Gdx.graphics.getWidth() / Gdx.graphics.getHeight() < 16f / 9) {
-		    float height = Gdx.graphics.getHeight() / Gdx.graphics.getWidth() * Constants.WORLD_WIDTH;
+		if (Gdx.graphics.getWidth() / (float)Gdx.graphics.getHeight() < 16f / 9) {
+		    float height = (float)Gdx.graphics.getHeight() / Gdx.graphics.getWidth() * Constants.WORLD_WIDTH;
 		    float margin = (height - Constants.WORLD_HEIGHT) / 2;
-		    Gdx.app.log("horizontal", "" + margin);
             batch.draw(backgroundTexture, 0, -margin, Constants.WORLD_WIDTH, margin);
             batch.draw(backgroundTexture, 0, Constants.WORLD_HEIGHT, Constants.WORLD_WIDTH, margin);
         } else {
-		    float width = Gdx.graphics.getWidth() / Gdx.graphics.getHeight() * Constants.WORLD_HEIGHT;
+		    float width = (float)Gdx.graphics.getWidth() / Gdx.graphics.getHeight() * Constants.WORLD_HEIGHT;
 		    float margin = (width - Constants.WORLD_WIDTH) / 2;
-            Gdx.app.log("vertical", "" + margin);
             batch.draw(backgroundTexture, -margin, 0, margin, Constants.WORLD_HEIGHT);
             batch.draw(backgroundTexture, Constants.WORLD_WIDTH, 0, margin, Constants.WORLD_HEIGHT);
         }
         batch.end();
         if (map.getGameState() == GameState.COUNTING) {
             if (!(overlay instanceof CountDownOverlay)) {
+                if (overlay != null) {
+                    overlay.dispose();
+                }
                 overlay = new CountDownOverlay();
             }
             ((CountDownOverlay) overlay).setCount(map.getCount());
             overlay.draw();
         } else if (map.getGameState() == GameState.WAITING) {
             if (!(overlay instanceof WaitingOverlay)) {
+                if (overlay != null) {
+                    overlay.dispose();
+                }
                 overlay = new WaitingOverlay();
             }
             overlay.draw();
         } else if (map.getGameState() == GameState.WON || map.getGameState() == GameState.LOST) {
 		    if (!(overlay instanceof GameOverOverlay)) {
+		        if (overlay != null) {
+                    overlay.dispose();
+                }
 		        overlay = new GameOverOverlay(map.getGameState() == GameState.WON);
             }
 			overlay.draw();
@@ -96,6 +103,8 @@ public class GameScreen implements Screen {
             overlay.resize(width, height);
         }
         map.resize(width, height);
+        //batch.setTransformMatrix(map.getCamera().view);
+        batch.setProjectionMatrix(map.getCamera().combined);
 	}
 
 	@Override
