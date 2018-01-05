@@ -16,15 +16,9 @@ import java.util.UUID;
 public class ServerGame implements Disposable {
 
     private Map map;
-    private boolean isDisconnected;
 
     ServerGame() {
-        isDisconnected = false;
         map = new DefaultMap();
-    }
-
-    public Map getMap() {
-        return map;
     }
 
     public void addPlayer(UUID id) {
@@ -41,16 +35,16 @@ public class ServerGame implements Disposable {
         for (int i = 0; i < players.size; ++i) {
             if (players.get(i).getController() instanceof ServerController) {
                 if (((ServerController) players.get(i).getController()).getUUID().equals(id)) {
-                    players.removeIndex(i);
+                    map.disconnectPlayer();
                     //map.removeCharacter(players.get(i));
                     break;
                 }
             }
         }
-        if (map.getCharacters().size < 1) {
-            disconnect();
+        if (map.getActivePlayerCount() < 1) {
+            map.terminate();
         } else if (map.getGameState() != GameState.LOST && map.getGameState() != GameState.WON) {
-            disconnect();
+            map.terminate();
             // may want to alert user of opponent leaving
         }
     }
@@ -75,28 +69,17 @@ public class ServerGame implements Disposable {
         return map.getCharacters().size >= 2;
     }
 
-    public void disconnect() {
-        isDisconnected = true;
-        map.terminate();
-    }
-
     public boolean getIsDisconnected() {
-        return isDisconnected;
+        return map.getGameState() == GameState.TERMINATED;
     }
 
     public boolean isReadyToRemove() {
-        return (isDisconnected && map.getCharacters().size <= 0);
+        return (map.getGameState() == GameState.TERMINATED && map.getActivePlayerCount() <= 0);
     }
 
     @Override
     public String toString() {
-        String serialization = "gameState=" + map.getGameState().toString();
-        Array<Character> characters = map.getCharacters();
-        serialization += "&numPlayers=" + characters.size;
-        for (int i = 0; i < characters.size; ++i) {
-            serialization += "&" + characters.get(i).serialize(i);
-        }
-        return serialization;
+        return map.toString();
     }
 
     @Override

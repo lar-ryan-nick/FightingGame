@@ -33,7 +33,7 @@ public class Server implements Runnable, Disposable {
 				connection = new Connection(serverSocket.accept());
 				System.out.println("Made a connection!");
 				synchronized (serverGames) {
-					if (serverGames.size > 0 && !serverGames.get(serverGames.size - 1).isFull()) {
+					if (serverGames.size > 0 && !serverGames.get(serverGames.size - 1).isFull() && !serverGames.get(serverGames.size - 1).getIsDisconnected()) {
 						connection.setServerGame(serverGames.get(serverGames.size - 1));
 					} else {
 						serverGames.add(new ServerGame());

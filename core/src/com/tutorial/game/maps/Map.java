@@ -5,18 +5,16 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.Timer;
 import com.tutorial.game.characters.Character;
-import com.tutorial.game.characters.ClientCharacter;
 import com.tutorial.game.constants.GameState;
-import com.tutorial.game.controllers.LocalPlayerController;
 import com.tutorial.game.controllers.PlayerController;
 
 import static com.tutorial.game.constants.Constants.WORLD_HEIGHT;
@@ -33,14 +31,15 @@ public abstract class Map {
 	private GameState gameState;
 	private OrthographicCamera camera;
 	private Array<Character> characters;
+	private int numActivePlayers;
 	private int count;
 
 	public Map() {
 		gameState = GameState.WAITING;
 		count = 0;
+		numActivePlayers = 0;
 		world = new World(new Vector2(0, -200f), true);
 		//renderer = new Box2DDebugRenderer();
-		camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		characters = new Array<Character>();
 		/*
 		OrthographicCamera cam = (OrthographicCamera) stage.getCamera();
@@ -48,6 +47,9 @@ public abstract class Map {
 		cam.position.x = WORLD_WIDTH / 2;
 		cam.position.y = WORLD_HEIGHT / 2;
 		*/
+        camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        camera.position.x = WORLD_WIDTH / 2;
+        camera.position.y = WORLD_HEIGHT / 2;
 		resize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		/*
 		if (Gdx.graphics.getHeight() != 0) {
@@ -144,17 +146,13 @@ public abstract class Map {
 	public void resize(int width, int height) {
 	    if (width != 0 && height != 0) {
 			if ((float)width / height < 16f / 9) {
-				//camera.zoom = WORLD_WIDTH / width;
                 camera.viewportWidth = WORLD_WIDTH;
                 camera.viewportHeight = height * WORLD_WIDTH / width;
 			} else {
-				//camera.zoom = WORLD_HEIGHT / height;
                 camera.viewportHeight = WORLD_HEIGHT;
                 camera.viewportWidth = width * WORLD_HEIGHT / height;
 			}
 		}
-        camera.position.x = WORLD_WIDTH / 2;
-        camera.position.y = WORLD_HEIGHT / 2;
 		camera.update();
     }
 
@@ -185,6 +183,7 @@ public abstract class Map {
 
 	public void addCharacter(Character character) {
 		characters.add(character);
+		numActivePlayers++;
 		if (characters.size > 1) {
 		    beginGame();
         }
@@ -195,6 +194,14 @@ public abstract class Map {
         int index = characters.indexOf(character, false);
         characters.get(index).dispose();
         characters.removeIndex(index);
+    }
+
+    public synchronized void disconnectPlayer() {
+	    numActivePlayers--;
+    }
+
+    public int getActivePlayerCount() {
+	    return numActivePlayers;
     }
 
 	public void beginGame() {
@@ -224,6 +231,16 @@ public abstract class Map {
 	public Camera getCamera() {
 		return camera;
 	}
+
+	@Override
+    public String toString() {
+	    String serialization = "gameState=" + gameState.toString();
+	    serialization += "&numPlayers=" + characters.size;
+	    for (int i = 0; i < characters.size; i++) {
+	        serialization += "&" + characters.get(i).serialize(i);
+        }
+        return serialization;
+    }
 
 	public void dispose() {
 		for (int i = 0; i < characters.size; ++i) {

@@ -128,7 +128,7 @@ public class Character extends Actor implements Disposable, Serializable, Disabl
 	public void jump() {
 		if (!isDisabled && !isDead && !isInAir && currFlinchNum < 0) {
 			setTexture("character_jump_start.png");
-			characterBody.applyForceToCenter(0, 10000f * characterBody.getMass(), true);
+			characterBody.applyForceToCenter(0, 6000f * characterBody.getMass(), true);
 			isInAir = true;
 			currCrouchNum = -1;
 			crouchingTimer.stop();
@@ -478,7 +478,6 @@ public class Character extends Actor implements Disposable, Serializable, Disabl
 	}
 
 	public void updateFromMap(Map<String, String> vals, int index) {
-		//HashMap<String, String> vals = parseString(s);
 		if (vals != null) {
 			setPosition(Float.parseFloat(vals.get("x" + index)), Float.parseFloat(vals.get("y" + index)));
 			setSize(Float.parseFloat(vals.get("width" + index)), getHeight());
