@@ -80,11 +80,8 @@ public class MainScreen implements Screen {
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        //window.begin();
         stage.act(delta);
         stage.draw();
-        //screen.draw(window);
-        //window.end();
     }
 
     @Override
@@ -110,10 +107,6 @@ public class MainScreen implements Screen {
 
     @Override
     public void dispose() {
-        /*
-        window.dispose();
-        screen.getTexture().dispose();
-        */
         ((InputMultiplexer) Gdx.input.getInputProcessor()).removeProcessor(stage);
         stage.dispose();
         impactWhite48.dispose();

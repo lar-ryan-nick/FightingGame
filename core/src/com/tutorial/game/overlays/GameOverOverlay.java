@@ -52,7 +52,7 @@ public class GameOverOverlay extends Overlay {
                 ((Game) Gdx.app.getApplicationListener()).setScreen(mainScreen);
 			}
 		});
-		textButton.setBounds((Gdx.graphics.getWidth() - textButton.getPrefWidth()) / 2, title.getY() - title.getHeight() - 100, textButton.getPrefWidth(), textButton.getPrefHeight());
+		textButton.setBounds((Gdx.graphics.getWidth() - textButton.getPrefWidth()) / 2, title.getY() - title.getHeight() * 3 / 2, textButton.getPrefWidth(), textButton.getPrefHeight());
 		stage.addActor(textButton);
         ((InputMultiplexer) Gdx.input.getInputProcessor()).addProcessor(stage);
 	}

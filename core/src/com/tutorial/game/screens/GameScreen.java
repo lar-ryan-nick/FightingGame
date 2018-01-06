@@ -16,6 +16,8 @@ import com.tutorial.game.overlays.GameOverOverlay;
 import com.tutorial.game.overlays.Overlay;
 import com.tutorial.game.overlays.WaitingOverlay;
 
+import java.util.HashMap;
+
 /**
  * Created by ryanwiener on 1/1/18.
  */
@@ -24,12 +26,17 @@ public class GameScreen implements Screen {
 
     private Map map;
 	private Batch batch;
-	private Overlay overlay;
+	private java.util.Map<GameState, Overlay> overlays;
 	final private Texture backgroundTexture;
 
 	public GameScreen() {
 	    super();
 	    backgroundTexture = new Texture("img/GameFloorImage.jpg");
+	    overlays = new HashMap<GameState, Overlay>();
+	    overlays.put(GameState.WON, new GameOverOverlay(true));
+        overlays.put(GameState.LOST, new GameOverOverlay(false));
+        overlays.put(GameState.COUNTING, new CountDownOverlay());
+        overlays.put(GameState.WAITING, new WaitingOverlay());
     }
 
 	public Map getMap() {
@@ -69,38 +76,16 @@ public class GameScreen implements Screen {
             batch.draw(backgroundTexture, Constants.WORLD_WIDTH, 0, margin, Constants.WORLD_HEIGHT);
         }
         batch.end();
-        if (map.getGameState() == GameState.COUNTING) {
-            if (!(overlay instanceof CountDownOverlay)) {
-                if (overlay != null) {
-                    overlay.dispose();
-                }
-                overlay = new CountDownOverlay();
-            }
-            ((CountDownOverlay) overlay).setCount(map.getCount());
+		Overlay overlay = overlays.get(map.getGameState());
+		if (overlay != null) {
             overlay.draw();
-        } else if (map.getGameState() == GameState.WAITING) {
-            if (!(overlay instanceof WaitingOverlay)) {
-                if (overlay != null) {
-                    overlay.dispose();
-                }
-                overlay = new WaitingOverlay();
-            }
-            overlay.draw();
-        } else if (map.getGameState() == GameState.WON || map.getGameState() == GameState.LOST) {
-		    if (!(overlay instanceof GameOverOverlay)) {
-		        if (overlay != null) {
-                    overlay.dispose();
-                }
-		        overlay = new GameOverOverlay(map.getGameState() == GameState.WON);
-            }
-			overlay.draw();
-		}
+        }
 	}
 
 	@Override
 	public void resize(int width, int height) {
-        if (overlay != null) {
-            overlay.resize(width, height);
+	    for (Overlay overlay : overlays.values()) {
+	        overlay.resize(width, height);
         }
         map.resize(width, height);
         //batch.setTransformMatrix(map.getCamera().view);
@@ -126,8 +111,8 @@ public class GameScreen implements Screen {
 	public void dispose() {
 		map.dispose();
 		batch.dispose();
-		if (overlay != null) {
-		    overlay.dispose();
+		for (Overlay overlay : overlays.values()) {
+	        overlay.dispose();
         }
         backgroundTexture.dispose();
 	}
