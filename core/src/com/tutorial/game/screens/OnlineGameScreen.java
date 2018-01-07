@@ -50,8 +50,8 @@ public class OnlineGameScreen extends GameScreen {
 
 	public void listenServer() {
 		try{
-			//socket = new Socket("76.90.139.212", 8000);
-			socket = new Socket("localhost", 8000);
+			socket = new Socket("98.185.240.11", 8000);
+			//socket = new Socket("localhost", 8000);
 			out = new PrintWriter(socket.getOutputStream(), true);
 			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		} catch (UnknownHostException e) {
