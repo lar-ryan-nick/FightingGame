@@ -21,6 +21,7 @@ import com.tutorial.game.characters.ClientCharacter;
 import com.tutorial.game.constants.GameState;
 import com.tutorial.game.controllers.NetworkController;
 import com.tutorial.game.controllers.OnlinePlayerController;
+import com.tutorial.game.controllers.PlayerController;
 import com.tutorial.game.maps.DefaultMap;
 import com.tutorial.game.maps.Map;
 
@@ -92,8 +93,19 @@ public class OnlineGameScreen extends GameScreen {
 			//Gdx.app.log("Using", line);
 			if (line != null) {
 				HashMap<String, String> params = parseString(line);
-				if (params != null) {
+				if (!params.isEmpty()) {
 				    getMap().setGameState(GameState.valueOf(params.get("gameState")));
+				    if (getMap().getGameState() == GameState.LOST || getMap().getGameState() == GameState.WON) {
+						for (Character character : getMap().getCharacters()) {
+							if (character.getController() instanceof OnlinePlayerController) {
+								if (((NetworkController) character.getController()).getUUID().equals(UUID.fromString(params.get("winner")))) {
+									getMap().setGameState(GameState.WON);
+								} else {
+									getMap().setGameState(GameState.LOST);
+								}
+							}
+						}
+					}
 				    if (getMap().getGameState() != GameState.TERMINATED) {
                         for (int i = 0; i < Integer.parseInt(params.get("numPlayers")); ++i) {
                             Array<Character> characters = getMap().getCharacters();
@@ -132,9 +144,6 @@ public class OnlineGameScreen extends GameScreen {
 			if (keyVal.length > 1) {
 				result.put(keyVal[0], keyVal[1]);
 			}
-		}
-		if (result.isEmpty()) {
-			return null;
 		}
 		return result;
 	}

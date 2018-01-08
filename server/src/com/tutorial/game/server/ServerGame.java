@@ -79,7 +79,16 @@ public class ServerGame implements Disposable {
 
     @Override
     public String toString() {
-        return map.toString();
+        String rep = map.toString();
+        if (map.getGameState() == GameState.WON || map.getGameState() == GameState.LOST) {
+            Array<Character> characters = map.getCharacters();
+            for (int i = 0; i < characters.size; ++i) {
+                if (!characters.get(i).getIsDead() && characters.get(i).getController() instanceof ServerController) {
+                    rep += "&winner=" + ((ServerController) characters.get(i).getController()).getUUID();
+                }
+            }
+        }
+        return rep;
     }
 
     @Override

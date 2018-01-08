@@ -53,6 +53,7 @@ public class Connection implements Disposable {
 					} catch (IOException e) {
 						System.err.println("Read failed");
 						dispose();
+						return;
 					}
 				}
 			}
